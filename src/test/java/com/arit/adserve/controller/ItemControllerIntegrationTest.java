@@ -1,6 +1,5 @@
 package com.arit.adserve.controller;
 
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.net.URL;

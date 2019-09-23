@@ -1,7 +1,5 @@
 package com.arit.adserve.image;
 
-import static org.junit.Assert.*;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;

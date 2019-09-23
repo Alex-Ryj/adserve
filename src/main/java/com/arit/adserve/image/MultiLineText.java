@@ -8,13 +8,10 @@ import java.awt.font.LineBreakMeasurer;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
-import java.util.Hashtable;
-
-import javax.imageio.ImageIO;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.util.StringUtils;
 
@@ -112,7 +109,7 @@ public class MultiLineText {
 	
 
 	public BufferedImage getTextImage() {
-		Hashtable<TextAttribute,Object> map = new Hashtable<TextAttribute,Object>();
+		Map<TextAttribute,Object> map = new HashMap<>();
 		map.put(TextAttribute.FAMILY, fontFamily);
 		map.put(TextAttribute.SIZE, fontSize);		
 		map.put(TextAttribute.JUSTIFICATION, TextAttribute.JUSTIFICATION_FULL);
