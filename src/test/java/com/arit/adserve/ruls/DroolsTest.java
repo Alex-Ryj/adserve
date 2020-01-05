@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 
-import com.arit.adserve.ebay.Item;
+import com.arit.adserve.ebay.EbayItem;
 import com.arit.adserve.rules.DroolsConfig;
 
 public class DroolsTest {
@@ -22,7 +22,7 @@ public class DroolsTest {
  
     @Test
     public void testEbayItem(){
-        Item item = new Item(5, "used");
+        EbayItem item = new EbayItem(5, "used");
         kSession.insert(item); 
         kSession.fireAllRules(); 
         assertTrue(item.isProcess());
