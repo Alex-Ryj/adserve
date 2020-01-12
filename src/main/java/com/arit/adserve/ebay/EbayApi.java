@@ -85,8 +85,8 @@ public class EbayApi  extends RouteBuilder implements IApiCall{
 		
 		from("timer://foo?fixedRate=true&delay=0&period=10000")
 		  .to("direct:remoteService")		  
-		  .to("file:target/google?fileName=message.json")
-		  .split().jsonpath("$.findItemsByKeywordsResponse.[searchResult]")
+//		  .to("file:target/google?fileName=message.json")
+		  .split().jsonpathWriteAsString("$.findItemsByKeywordsResponse[0].searchResult[0].item")
 		  .to("log:item");
 		
 		from("direct:remoteService")   
