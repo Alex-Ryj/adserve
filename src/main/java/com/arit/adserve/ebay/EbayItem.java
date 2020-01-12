@@ -2,19 +2,18 @@ package com.arit.adserve.ebay;
 
 import com.arit.adserve.entity.Item;
 
-public class EbayItem extends Item{
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper=true)
+public class EbayItem extends Item {
 
 	private String saleCondition;
 	
-	public EbayItem(int price, String saleCondition) {
+	public EbayItem(String itemId, String name, String title, int price, String saleCondition) {
+		super(itemId, name, title);
 		setPrice(price); 
 		this.saleCondition = saleCondition;			
-	}
-
-	public String getSaleCondition() {
-		return saleCondition;
-	}
-	public void setSaleCondition(String saleCondition) {
-		this.saleCondition = saleCondition;
-	}
+	}	
 }

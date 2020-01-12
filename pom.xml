@@ -22,6 +22,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<drools.version>7.15.0.Final</drools.version>
 		<camel.version>2.24.3</camel.version>
+		<lombok.version>1.18.10</lombok.version>
 	</properties>
 
 	<dependencies>
@@ -37,7 +38,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
-			<version>2.1.1.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel</groupId>
@@ -70,9 +70,13 @@
 			<version>${camel.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-jsonpath</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>2.4.0</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -105,6 +109,11 @@
 			<groupId>org.drools</groupId>
 			<artifactId>drools-compiler</artifactId>
 			<version>${drools.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
 		</dependency>
 	</dependencies>
 

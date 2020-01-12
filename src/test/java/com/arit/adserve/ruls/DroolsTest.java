@@ -22,7 +22,7 @@ public class DroolsTest {
  
     @Test
     public void testEbayItem(){
-        EbayItem item = new EbayItem(5, "used");
+        EbayItem item = new EbayItem("", "", "", 5, "used");
         kSession.insert(item); 
         kSession.fireAllRules(); 
         assertTrue(item.isProcess());
