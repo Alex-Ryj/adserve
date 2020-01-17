@@ -38,15 +38,10 @@ public class DroolsConfig {
 
 	public KieContainer getKieContainer() throws IOException {
 		getKieRepository();
-
 		KieBuilder kb = kieServices.newKieBuilder(getKieFileSystem());
 		kb.buildAll();
-
 		KieModule kieModule = kb.getKieModule();
-		KieContainer kContainer = kieServices.newKieContainer(kieModule.getReleaseId());
-
-		return kContainer;
-
+		return kieServices.newKieContainer(kieModule.getReleaseId());
 	}
 
 	private void getKieRepository() {
@@ -60,14 +55,10 @@ public class DroolsConfig {
 
 	public KieSession getKieSession() throws IOException {
 		getKieRepository();
-		
-
 		KieBuilder kb = kieServices.newKieBuilder(getKieFileSystem());
 		kb.buildAll();
 		KieModule kieModule = kb.getKieModule();
-
 		KieContainer kContainer = kieServices.newKieContainer(kieModule.getReleaseId());
-
 		return kContainer.newKieSession();
 
 	}

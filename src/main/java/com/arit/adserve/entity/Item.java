@@ -8,8 +8,9 @@ public class Item {
 	
 	@NonNull
 	private String itemId, name, title;
-	private String description, productId, galeryURL, viewItemURL, location, country, condition;
+	private String description, productId, galeryURL, viewItemURL, 
+				   location, country, condition, priceForamtted, currency;
 	private int price;
 	private boolean process;	
-
+	
 }

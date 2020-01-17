@@ -8,12 +8,10 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper=true)
 public class EbayItem extends Item {
-
-	private String saleCondition;
 	
-	public EbayItem(String itemId, String name, String title, int price, String saleCondition) {
+	public EbayItem(String itemId, String name, String title, int price, String currency) {
 		super(itemId, name, title);
 		setPrice(price); 
-		this.saleCondition = saleCondition;			
+		setCurrency(currency);
 	}	
 }
