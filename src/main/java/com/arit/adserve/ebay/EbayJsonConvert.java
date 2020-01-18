@@ -2,9 +2,12 @@ package com.arit.adserve.ebay;
 
 import java.io.IOException;
 
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Service
 public class EbayJsonConvert {
 
 	public EbayItem getItem(String strJson) throws IOException {

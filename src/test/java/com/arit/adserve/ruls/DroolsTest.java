@@ -23,7 +23,7 @@ public class DroolsTest {
     @Test
     public void testEbayItem(){
         EbayItem item = new EbayItem("", "", "", 5000, "USD");
-        item.setCondition("used");
+        item.setCondition("Used");
         kSession.insert(item); 
         kSession.fireAllRules(); 
         assertTrue(item.isProcess());

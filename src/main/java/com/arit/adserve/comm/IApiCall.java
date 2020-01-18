@@ -8,9 +8,6 @@ import java.util.TreeMap;
 
 public interface IApiCall {
 
-	String callApi(String url, String payload);	
-	String getApiUrl(Map params);	
-	boolean needsToWait();
 	
 	public static String canonicalQueryString(Map<String, String> params) throws UnsupportedEncodingException {
         // params can be sorted in alphabetical order
