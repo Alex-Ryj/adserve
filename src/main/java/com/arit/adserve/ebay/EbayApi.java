@@ -94,21 +94,25 @@ public class EbayApi  extends RouteBuilder implements IApiCall {
 				logger.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());					
 			}
 		})
-		  .to("log:item");
+		  .to("log:item")
+		  .to("direct:getImage");
 		
 		from("direct:getImage")
-		.filter().method(EbayItem.class, "isProcess")
+//		.filter().simple("${body.process} == true")
 		.setHeader("Accept", simple("image/jpeg"))
         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
 		  .process(new Processor() {			
 			@Override
 			public void process(Exchange exchange) throws Exception {
 				EbayItem item = exchange.getIn().getBody(EbayItem.class);
-				exchange.getIn().setHeader("imageURL", item.getGaleryURL());							
+				exchange.getIn().setBody(item.getGaleryURL().replace("https", "https4"));
+				logger.info("imageURL: {}", item.getGaleryURL());
+				exchange.getIn().setHeader("imageFile", "ebay-" + item.getItemId());
 			}
 		})
-        .to(header("imageURL").toString())
-        .to("file:///tmp/?fileName=yourFileName.xml");
+		.setHeader(Exchange.HTTP_METHOD, constant("GET"))
+        .toD("${body}")
+        .toD("file:///tmp/ebay/?fileName=${header.imageFile}.jpg");
 
 	}
 	
