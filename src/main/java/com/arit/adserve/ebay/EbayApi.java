@@ -3,6 +3,7 @@ package com.arit.adserve.ebay;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -15,7 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.arit.adserve.comm.IApiCall;
-import com.arit.adserve.controller.ItemController;
+import com.arit.adserve.comm.ItemJsonConvert;
+import com.arit.adserve.entity.Item;
+import com.arit.adserve.entity.repository.ItemRepository;
 import com.arit.adserve.rules.Evaluate;
 
 @Service
@@ -41,10 +44,13 @@ public class EbayApi  extends RouteBuilder implements IApiCall {
 	private int serverPort;
 	
 	@Autowired
-	private EbayJsonConvert convert;	
+	private ItemJsonConvert convert;	
 	
 	@Autowired
 	private Evaluate evaluate;
+	
+	@Autowired
+	private ItemRepository itemRepository;
 	
 	
 	public EbayApi() {
@@ -90,8 +96,9 @@ public class EbayApi  extends RouteBuilder implements IApiCall {
 		  .process(new Processor() {			
 			@Override
 			public void process(Exchange exchange) throws Exception {
-				EbayItem item = exchange.getIn().getBody(EbayItem.class);
-				logger.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());					
+				Item item = exchange.getIn().getBody(Item.class);
+				logger.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());
+				itemRepository.save(item);
 			}
 		})
 		  .to("log:item")
@@ -104,15 +111,32 @@ public class EbayApi  extends RouteBuilder implements IApiCall {
 		  .process(new Processor() {			
 			@Override
 			public void process(Exchange exchange) throws Exception {
-				EbayItem item = exchange.getIn().getBody(EbayItem.class);
+				Item item = exchange.getIn().getBody(Item.class);
 				exchange.getIn().setBody(item.getGaleryURL().replace("https", "https4"));
 				logger.info("imageURL: {}", item.getGaleryURL());
 				exchange.getIn().setHeader("imageFile", "ebay-" + item.getItemId());
+				exchange.getIn().setHeader("itemId", item.getItemId());
 			}
 		})
 		.setHeader(Exchange.HTTP_METHOD, constant("GET"))
         .toD("${body}")
-        .toD("file:///tmp/ebay/?fileName=${header.imageFile}.jpg");
+        .marshal().base64()
+		  .process(new Processor() {			
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				String imageStr = exchange.getIn().getBody(String.class);
+				logger.info(imageStr);
+				Optional<Item> optItem = itemRepository.findById(exchange.getIn().getHeader("itemId").toString());
+				if(optItem.isPresent()) {
+					Item item = optItem.get();
+					item.setImage64BaseStr(imageStr);
+					itemRepository.save(item);
+				}
+			}
+		})
+		.unmarshal().base64()
+        .toD("file:///tmp/ebay/?fileName=${header.imageFile}.jpg")
+        .to("log:image");
 
 	}
 	
@@ -123,8 +147,7 @@ public class EbayApi  extends RouteBuilder implements IApiCall {
 		params.put("GLOBAL-ID", ebayGlobalId);
 		params.put("siteid", ebaySiteId);
 		params.put("RESPONSE-DATA-FORMAT", "JSON");
-		params.put("Content-Type", "text/xml;charset=utf-8");
-		
+		params.put("Content-Type", "text/xml;charset=utf-8");		
 		params.put("OPERATION-NAME", "findItemsByKeywords");
 		params.put("keywords", "drone");
 		params.put("paginationInput.entriesPerPage", "10");

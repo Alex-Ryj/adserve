@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 
-import com.arit.adserve.ebay.EbayItem;
+import com.arit.adserve.entity.Item;
 import com.arit.adserve.rules.DroolsConfig;
 
 public class DroolsTest {
@@ -22,7 +22,8 @@ public class DroolsTest {
  
     @Test
     public void testEbayItem(){
-        EbayItem item = new EbayItem("", "", "", 5000, "USD");
+        Item item = new Item();
+        item.setPrice(7000);
         item.setCondition("Used");
         kSession.insert(item); 
         kSession.fireAllRules(); 
