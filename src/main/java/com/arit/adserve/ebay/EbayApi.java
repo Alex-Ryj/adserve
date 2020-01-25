@@ -78,6 +78,21 @@ public class EbayApi  extends RouteBuilder implements IApiCall {
 		  .id("test-route")
 		  .get("ebay")			
 		  .to("direct:remoteEbayApi");
+		
+		rest("/test/")
+		  .id("test-route")
+		  .get("db")			
+		  .to("direct:getItems");
+		
+		from("direct:getItems")
+		.process(new Processor() {			
+			@Override
+			public void process(Exchange exchange) throws Exception {
+				Iterable<Item> items = itemRepository.findAll();
+				exchange.getIn().setBody(items);
+			}
+		});
+
 
 		/**
 		from("timer://foo?fixedRate=true&delay=0&period=10000")
@@ -130,6 +145,7 @@ public class EbayApi  extends RouteBuilder implements IApiCall {
 				if(optItem.isPresent()) {
 					Item item = optItem.get();
 					item.setImage64BaseStr(imageStr);
+					logger.info("saving {}", item);
 					itemRepository.save(item);
 				}
 			}

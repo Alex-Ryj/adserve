@@ -62,3 +62,4 @@ nb-configuration.xml
 /app.properties
 
 logs/
+/derby.log

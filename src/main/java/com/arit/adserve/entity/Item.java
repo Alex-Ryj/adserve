@@ -1,5 +1,7 @@
 package com.arit.adserve.entity;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
@@ -9,12 +11,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.ToString;
 
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
 @Entity
 @Table(name="item")
+@ToString
 public class Item {	
 	
 	@Id	
@@ -30,5 +34,6 @@ public class Item {
 	private String updatedImage64BaseStr;
 	private int price;
 	private boolean process;	
+	private Date createdOn = new Date(), updatedOn = new Date();
 	
 }
