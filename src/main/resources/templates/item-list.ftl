@@ -6,11 +6,11 @@
         <link rel="stylesheet" type="text/css" href="/css/style.css"/>
     </head>
     <body>
-        <h1>Note List</h1>
+        <h1>Items List</h1>
         
         <div>
             <nobr>
-                <a href="/notes/add">Add Item</a> |
+                <a href="/items/add">Add Item</a> |
                 <a href="/">Back to Index</a>
             </nobr>
         </div>
@@ -26,9 +26,10 @@
                 </tr>
                 <#list items as item>
                     <tr>
-                        <td><a href="${'items/' + item.itemId}">${item.itemId}</a></td>
+                        <td>  <img src="data:image/png;base64, ${item.image64BaseStr}" alt="Item image" /></td>
                         <td><a href="${'items/' + item.itemId}">${item.title}</a></td>
-                         <td><a href="${'item.viewImageURL'}">View</a></td>
+                        <td><a href="${'items/' + item.itemId}">${item.title}</a></td>
+                         <td><a href="${item.viewItemURL}">View</a></td>
                         <td>${(item.createdOn)}</td>
                         <td>${(item.updatedOn)}</td>
                         <td><a href="${'items/' + item.itemId + '/edit'}">Edit</a></td>
@@ -36,6 +37,12 @@
                 </#list>
                             </table>          
         </div>
+        <div>
+  <p>Taken from wikpedia</p>
+  <img src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA
+    AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+        9TXL0Y4OHwAAAABJRU5ErkJggg==" alt="Red dot" />
+</div>
         <br/><br/>
         <div>
             <nobr>

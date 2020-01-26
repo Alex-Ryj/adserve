@@ -31,7 +31,7 @@ public class Item {
 	@Lob
 	private String image64BaseStr;
 	@Lob
-	private String updatedImage64BaseStr;
+	private String modifiedImage64BaseStr;
 	private int price;
 	private boolean process;	
 	private Date createdOn = new Date(), updatedOn = new Date();
