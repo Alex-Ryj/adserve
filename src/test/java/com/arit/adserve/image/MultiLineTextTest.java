@@ -37,12 +37,7 @@ public class MultiLineTextTest {
 		map.put(TextAttribute.FAMILY, "Arial");
 		map.put(TextAttribute.SIZE,new Float(12.0));		
 		map.put(TextAttribute.JUSTIFICATION, TextAttribute.JUSTIFICATION_FULL);
-		AttributedString vanGogh = new AttributedString(
-		"Many people believe that Vincent van Gogh painted his best works " +
-		"during the two-year period he spent in Provence. Here is where he " +
-		"painted The Starry Night--which some consider to be his greatest " +
-		"work of all. However, as his artistic brilliance reached new " +
-		"heights in Provence, his physical and mental health plummeted. ",
+		AttributedString vanGogh = new AttributedString(text,
 		map);
 
 		AttributedCharacterIterator paragraph = vanGogh.getIterator();
@@ -86,7 +81,7 @@ public class MultiLineTextTest {
 		ImageIO.write(mlt.getTextImage(), "jpg", file);
 	}
 	
-	String text = "Many people believe that Vincent van Gogh painted his best works "
+	static String text = "Many people believe that Vincent van Gogh painted his best works "
 			+ "during the two-year period he spent in Provence. Here is where he "
 			+ "painted The Starry Night--which some consider to be his greatest "
 			+ "work of all. However, as his artistic brilliance reached new "

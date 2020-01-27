@@ -3,6 +3,8 @@ package com.arit.adserve.entity.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.PersistenceException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -31,32 +33,32 @@ public class ItemService {
 	        return items;
 	    }
 	 
-	 public Item save(Item item) throws Exception {
+	 public Item save(Item item) {
 	        if (StringUtils.isEmpty(item.getTitle())) {
-	            throw new Exception("Title is required");
+	            throw new PersistenceException("Title is required");
 	        }	
 	        if (item.getItemId() != null && existsById(item.getItemId())) { 
-	            throw new Exception("Item with id: " + item.getItemId() + " already exists");
+	            throw new PersistenceException("Item with id: " + item.getItemId() + " already exists");
 	        }
 	        return itemRepository.save(item);
 	    }
 	    
-	    public void update(Item item) throws Exception {
+	    public void update(Item item){
 	        if (StringUtils.isEmpty(item.getTitle())) {
-	            throw new Exception("Title is required");
+	            throw new PersistenceException("Title is required");
 	        }
 	        if (StringUtils.isEmpty(item.getViewItemURL())) {
-	            throw new Exception("Itrem URL is required");
+	            throw new PersistenceException("Item URL is required");
 	        }
 	        if (!existsById(item.getItemId())) {
-	            throw new Exception("Cannot find Item with id: " + item.getItemId());
+	            throw new PersistenceException("Cannot find Item with id: " + item.getItemId());
 	        }
 	        itemRepository.save(item);
 	    }
 	    
-	    public void deleteById(String id) throws Exception {
+	    public void deleteById(String id) {
 	        if (!existsById(id)) { 
-	            throw new Exception("Cannot find Item with id: " + id);
+	            throw new PersistenceException("Cannot find Item with id: " + id);
 	        }
 	        else {
 	            itemRepository.deleteById(id);

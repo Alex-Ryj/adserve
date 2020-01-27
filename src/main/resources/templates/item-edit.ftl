@@ -2,11 +2,11 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title><#if add>Create a Item<#else>Edit a Item</#if></title>
+        <title><#if add>Create item<#else>Edit an item</#if></title>
         <link rel="stylesheet" type="text/css" href="/css/style.css"/>
     </head>
     <body>
-        <h1><#if add>Create a Item:<#else>Edit a Item:</#if></h1>
+        <h1><#if add>Create an Item:<#else>Edit an Item:</#if></h1>
         <a href="/items">Back to Item List</a>
         <br/><br/>
         <#if add>
@@ -27,15 +27,18 @@
                 <tr>
                     <td>Image</td>
                     <td>:</td>
-                    <td><img src="data:image/png;base64, ${item.image64BaseStr}" alt="Item image" /></td>    
-                    <input id="fileInput" type="file" name="uploadingFile"/>      
+                    <td><#if item.image64BaseStr??>
+                       <img src="data:image/png;base64, ${item.image64BaseStr}" alt="Item image" />
+                        <#else>no image</#if>
+                       </td>    
+                    <td>upload image<input id="fileInput" type="file" name="uploadingFile"/> </td>     
                 </tr>
                 <tr>
                     <td>Modified Image</td>
                     <td>:</td>
                     <td><#if item.modifiedImage64BaseStr??>
                          <img src="data:image/png;base64, ${item.modifiedImage64BaseStr}" alt="Item image" />
-                         <#else>when-missing</#if></td>          
+                         <#else>no image</#if></td>          
                 </tr>
                 </#if>
                 <tr>
@@ -44,7 +47,7 @@
                     <td><input type="text" name="title" value="${(item.title)!''}" /></td>              
                 </tr>
                 <tr>
-                    <td>Content</td>
+                    <td>Description</td>
                     <td>:</td>
                     <td><textarea name="description" rows="4" cols="50">${(item.description)!""}</textarea></td>                    
                 </tr>             
