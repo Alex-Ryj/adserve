@@ -46,7 +46,7 @@ public class MultiLineText {
 		private float drawPosY = 10f;
 		private float drawPosX = 10f;
 		private Color fontColor = Color.BLACK;
-		private Color fontBackroundColor = Color.GREEN;
+		private Color fontBackroundColor = Color.WHITE;
 		private int width;
 		private String text;
 
@@ -117,26 +117,44 @@ public class MultiLineText {
 		// a naive calculation of an approximate image height to fit the text 
 		int calculatedHeight = (int) (text.length() * fontSize/breakWidth * fontSize + drawPosY) ;
 		BufferedImage bufferedImage = new BufferedImage(width, calculatedHeight, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g2d =  bufferedImage.createGraphics();
-		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);		
-		g2d.setColor(fontBackroundColor);
-		g2d.fillRect(0, 0, width, calculatedHeight);
-		g2d.setBackground(fontBackroundColor);
-		g2d.setColor(fontColor);
+		Graphics2D g2d = extracted(calculatedHeight, bufferedImage);
 		AttributedCharacterIterator paragraph = attrString.getIterator();
 		int paragraphStart   = paragraph.getBeginIndex();
 		int paragraphEnd = paragraph.getEndIndex();
 		FontRenderContext frc = g2d.getFontRenderContext();
 		LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(paragraph, frc);		
 		lineMeasurer.setPosition(paragraphStart);
+		int lineCounter = 0;
 		while(lineMeasurer.getPosition()< paragraphEnd ){
+			lineCounter++;
 		    TextLayout layout = lineMeasurer.nextLayout(breakWidth);
 //		    drawPosx = layout.isLeftToRight()?0:breakWidth-layout.getAdvance();
 		    drawPosY += layout.getAscent();
 		    layout.draw(g2d, drawPosX, drawPosY);
 		    drawPosY += layout.getDescent() + layout.getLeading();
 		}
+		if(lineCounter < 2) {
+			g2d.dispose();
+			bufferedImage = new BufferedImage(width, calculatedHeight, BufferedImage.TYPE_INT_RGB);
+			g2d = extracted(calculatedHeight, bufferedImage);
+			g2d.drawString(text, 1, fontSize +1);
+			g2d.dispose();
+			return bufferedImage;
+		}
 		g2d.dispose();
 		return bufferedImage.getSubimage(0, 0, width, (int) drawPosY + 5);
 	}
+
+
+	private Graphics2D extracted(int calculatedHeight, BufferedImage bufferedImage) {
+		Graphics2D g2d =  bufferedImage.createGraphics();
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);		
+		g2d.setPaint(Color.WHITE);
+		g2d.fillRect(0, 0, width, calculatedHeight);
+		g2d.setBackground(fontBackroundColor);
+		g2d.setColor(fontColor);
+		return g2d;
+	}
+	
+	
 }

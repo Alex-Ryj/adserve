@@ -1,5 +1,7 @@
 package com.arit.adserve.image;
 
+import static org.junit.Assert.assertTrue;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -28,15 +30,17 @@ public class MultiLineTextTest {
 
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			
-		g2d.setColor(Color.WHITE);
+		g2d.setPaint(Color.WHITE);
+
 		g2d.fillRect(0, 0, width, height);
-		g2d.setBackground(Color.WHITE);
-		g2d.setColor(Color.RED);
+		
+		g2d.setColor(Color.BLACK);
 
 		Hashtable<TextAttribute,Object> map = new Hashtable<TextAttribute,Object>();
 		map.put(TextAttribute.FAMILY, "Arial");
-		map.put(TextAttribute.SIZE,new Float(12.0));		
+		map.put(TextAttribute.SIZE, new Float(12.0));		
 		map.put(TextAttribute.JUSTIFICATION, TextAttribute.JUSTIFICATION_FULL);
+		
 		AttributedString vanGogh = new AttributedString(text,
 		map);
 
@@ -76,9 +80,10 @@ public class MultiLineTextTest {
 	
 	@Test
 	public void testCreateImage() throws Exception {
-		MultiLineText mlt = new MultiLineText.Builder().text(text).width(100).breakWidth(80f).fontSize(10f).build();
+		MultiLineText mlt = new MultiLineText.Builder().text("text").fontColor(Color.RED).fontBackround(Color.WHITE).width(100).breakWidth(80f).fontSize(10f).build();
 		File file = new File("testimage.jpg");
 		ImageIO.write(mlt.getTextImage(), "jpg", file);
+		assertTrue(file.length()>1);
 	}
 	
 	static String text = "Many people believe that Vincent van Gogh painted his best works "
