@@ -48,7 +48,7 @@ public class FopTest {
 
             // Start XSLT transformation and FOP processing
             // That's where the XML is first transformed to XSL-FO and then 
-            // PDF is created
+            // PDF is created 
             transformer.transform(xmlSource, res);
         } finally {
             out.close();
