@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>TCSS</h1>
+
+<p>device control</p>
+<div id='ad_id'>
+<script>
+var howOften = 5; //number often in seconds to rotate
+var current = 0; //start the counter at 0
+var parentElement = document.getElementById(document.currentScript.parentElement.id);
+
+// place your images, text, etc in the array elements here
+var items = [
+    "<a href='link.htm' ><img alt='image0 (9K)' src='https://pixy.org/src/40/thumbs350/401854.jpg' height='300' width='300' border='0' /></a>",
+    "<a href='link.htm'><img alt='image1 (9K)' src='https://pixy.org/src/39/thumbs350/392847.jpg' height='300' width='300' border='0' /></a>",
+    "<a href='link.htm'><img alt='image2 (9K)' src='https://pixy.org/src/41/thumbs350/412653.jpg' height='300' width='300' border='0' /></a>",
+    ];
+  
+function rotater() {      
+    parentElement.innerHTML=items[current];
+    current = (current==items.length-1) ? 0 : current + 1; //increment or reset
+    setTimeout("rotater()",howOften*1000);
+}
+
+alert(document.getElementById(document.currentScript.parentElement.id));
+window.onload=rotater;
+
+//-->
+</script>
+</div>
+
+loaded
+<script>
+alert(document.getElementById(document.currentScript.parentElement.id));
+</script>
+</body>
+</html>
