@@ -63,3 +63,10 @@ nb-configuration.xml
 
 logs/
 /derby.log
+
+##########################
+## VS Code
+##########################
+.vscode/**
+**/*.scss
+**/*.sass

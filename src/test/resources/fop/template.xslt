@@ -3,8 +3,8 @@
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:fo="http://www.w3.org/1999/XSL/Format"
 	exclude-result-prefixes="fo">
-	<xsl:template match="employees">
 	<xsl:param name="imgSrc"/>
+	<xsl:template match="employees">
 		<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
 			<fo:layout-master-set>
 				<fo:simple-page-master master-name="simpleA4"
@@ -20,7 +20,6 @@
 						space-after="5mm">
 						Company Name:
 						<xsl:value-of select="companyname" />
-						<xsl:value-of select="imgSrc"></xsl:value-of>
 					</fo:block>
 					<fo:block font-size="10pt">
 						<fo:table table-layout="fixed" width="100%"

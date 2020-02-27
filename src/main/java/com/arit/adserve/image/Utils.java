@@ -2,11 +2,13 @@ package com.arit.adserve.image;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
@@ -16,6 +18,10 @@ import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageOutputStream;
 
 import org.springframework.data.util.Pair;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import com.sun.imageio.plugins.png.PNGMetadata;
 
 public class Utils {
 	
@@ -79,7 +85,7 @@ public class Utils {
 		return newImage;
 	}
 	
-	public byte[] pngWriteCustomData(BufferedImage buffImg, String key, String value) throws IOException {
+	public static byte[] pngWriteCustomData(BufferedImage buffImg, String key, String value) throws IOException {
 	    ImageWriter writer = ImageIO.getImageWritersByFormatName("png").next();
 
 	    ImageWriteParam writeParam = writer.getDefaultWriteParam();
@@ -109,5 +115,29 @@ public class Utils {
 
 	    return baos.toByteArray();
 	}
+	
+	public static String readCustomData(byte[] imageData, String key) throws IOException{
+	    ImageReader imageReader = ImageIO.getImageReadersByFormatName("png").next();
+
+	    imageReader.setInput(ImageIO.createImageInputStream(new ByteArrayInputStream(imageData)), true);
+
+	    // read metadata of first image
+	    IIOMetadata metadata = imageReader.getImageMetadata(0);
+
+	    //this cast helps getting the contents
+	    PNGMetadata pngmeta = (PNGMetadata) metadata; 
+	    NodeList childNodes = pngmeta.getStandardTextNode().getChildNodes();
+
+	    for (int i = 0; i < childNodes.getLength(); i++) {
+	        Node node = childNodes.item(i);
+	        String keyword = node.getAttributes().getNamedItem("keyword").getNodeValue();
+	        String value = node.getAttributes().getNamedItem("value").getNodeValue();
+	        if(key.equals(keyword)){
+	            return value;
+	        }
+	    }
+	    return null;
+	}
+	
 
 }
