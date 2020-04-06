@@ -24,7 +24,7 @@ public class EbayApi extends RouteBuilder implements IApiCall {
 
     private static Logger logger = LoggerFactory.getLogger(EbayApi.class);
 
-    Map<String, String> endpoints = new HashMap<>();
+    private Map<String, String> endpoints = new HashMap<>();
 
     @Value("${EBAY_APP_ID}")
     private String ebayAppId;
@@ -65,7 +65,7 @@ public class EbayApi extends RouteBuilder implements IApiCall {
                 .port(serverPort)
                 .enableCORS(true)
                 .apiContextPath("/api-doc")
-                .apiProperty("api.title", "Test REST API")
+                .apiProperty("api.title", "eBay service REST API")
                 .apiProperty("api.version", "v1")
                 .apiContextRouteId("doc-api")
                 .component("servlet")
