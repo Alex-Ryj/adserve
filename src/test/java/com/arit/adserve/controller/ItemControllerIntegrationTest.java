@@ -1,9 +1,5 @@
 package com.arit.adserve.controller;
 
-import static org.junit.Assert.assertTrue;
-
-import java.net.URL;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +9,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.net.URL;
+
+import static org.junit.Assert.assertTrue;
 
 
 @RunWith(SpringRunner.class)
@@ -36,6 +36,7 @@ public class ItemControllerIntegrationTest {
     public void getHello() throws Exception {
         ResponseEntity<String> response = template.getForEntity(base.toString(),
                 String.class);
-        assertTrue(response.getBody().equals("Greetings from Spring Boot!"));
+        System.out.println("response.getBody(): " + response.getBody());
+        assertTrue(response.getBody().contains("<html>"));
     }
 }
