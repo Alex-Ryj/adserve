@@ -1,15 +1,22 @@
 package com.arit.adserve;
 
-import org.apache.camel.component.servlet.CamelHttpTransportServlet;
-import org.springframework.beans.factory.annotation.Value;
+import com.arit.adserve.controller.ServerVerticle;
+import com.arit.adserve.ebay.EbayApi;
+import io.vertx.core.Vertx;
+import org.apache.camel.CamelContext;
+import org.apache.camel.component.vertx.VertxComponent;
+import org.apache.camel.spring.boot.CamelContextConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Hello api world!
@@ -18,24 +25,41 @@ import org.springframework.core.io.Resource;
 @SpringBootApplication
 @ComponentScan
 public class App {
-	
-	@Value("${api.path}")
-	String contextPath;
-	
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    private Vertx vertx = Vertx.vertx();
 	
 	public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
-	
-	@Bean
-	ServletRegistrationBean servletCamel() {
-	    ServletRegistrationBean servlet = new ServletRegistrationBean
-	      (new CamelHttpTransportServlet(), contextPath+"/*");
-	    servlet.setName("CamelServlet");
-	    return servlet;
-	}
 
+    public void deployVerticle() {
+        vertx.deployVerticle(applicationContext.getBean(ServerVerticle.class));
+        vertx.deployVerticle(applicationContext.getBean(EbayApi.class));
+    }
+
+    @Bean
+    public CamelContextConfiguration contextConfiguration() {
+        return new CamelContextConfiguration() {
+            @Override
+            public void beforeApplicationStart(CamelContext context) {
+                System.out.println("camel context before start: " + context);
+                VertxComponent vertxComponent = new VertxComponent();
+                vertxComponent.setVertx(vertx);
+                context.addComponent("vertx", vertxComponent);
+            }
+
+            @Override
+            public void afterApplicationStart(CamelContext camelContext) {
+                System.out.println("camel context after start: " + camelContext);
+                deployVerticle();
+            }
+        };
+    }
 	
+
     @Bean
     public static PropertyPlaceholderConfigurer propertiesExtenal() {
         PropertyPlaceholderConfigurer ppc

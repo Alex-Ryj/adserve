@@ -5,9 +5,10 @@ import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.repository.ItemRepository;
 import com.arit.adserve.rules.Evaluate;
+import io.vertx.core.AbstractVerticle;
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.rest.RestBindingMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +21,18 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class EbayApi extends RouteBuilder implements IApiCall {
+public class EbayApi extends AbstractVerticle implements IApiCall {
 
-    private static Logger logger = LoggerFactory.getLogger(EbayApi.class);
+    private static Logger log = LoggerFactory.getLogger(EbayApi.class);
 
     private Map<String, String> endpoints = new HashMap<>();
+
+    public static final String EBAY_REQUEST_VTX = "ebayReq";
+
+    public static final String EBAY_RESPONSE_CAMEL = "ebayResCamel";
+
+    @Autowired
+    private CamelContext camelContext;
 
     @Value("${EBAY_APP_ID}")
     private String ebayAppId;
@@ -35,12 +43,6 @@ public class EbayApi extends RouteBuilder implements IApiCall {
     @Value("${EBAY_SITE_ID}")
     private String ebaySiteId;
 
-    @Value("${api.path}")
-    private String contextPath;
-
-    @Value("${api.port}")
-    private int serverPort;
-
     @Autowired
     private ItemJsonConvert convert;
 
@@ -50,88 +52,85 @@ public class EbayApi extends RouteBuilder implements IApiCall {
     @Autowired
     private ItemRepository itemRepository;
 
-
     public EbayApi() {
         endpoints.put("Finding", "https4://svcs.ebay.com/services/search/FindingService/v1?");
         endpoints.put("Shopping", "http4://open.api.ebay.com/shopping?");
         endpoints.put("SOAP", "https4://api.ebay.com/wsapi");
     }
 
-
     @Override
-    public void configure() throws Exception {
-        restConfiguration()
-                .contextPath(contextPath)
-                .port(serverPort)
-                .enableCORS(true)
-                .apiContextPath("/api-doc")
-                .apiProperty("api.title", "eBay service REST API")
-                .apiProperty("api.version", "v1")
-                .apiContextRouteId("doc-api")
-                .component("servlet")
-                .bindingMode(RestBindingMode.json);
+    public void start() throws Exception {
+        super.start();
+//        vertx.eventBus().consumer(EBAY_REQUEST_VTX, message -> {
+//            System.out.println("ANNOUNCE >> " + message.body());
+//            message.reply("ok from ebay");
+//        });
 
 
-        rest("/test/")
-                .id("test-route")
-                .get("ebay")
-                .to("direct:remoteEbayApi");
+        camelContext.addRoutes(configureRoutes());
+        camelContext.start();
 
-        rest("/test/")
-                .id("test-route")
-                .get("db")
-                .to("direct:getItems");
+    }
 
-        from("direct:getItems")
-                .process(exchange -> {
-                    Iterable<Item> items = itemRepository.findAll();
-                    exchange.getIn().setBody(items);
-                });
+    private RouteBuilder configureRoutes() {
+        return new RouteBuilder() {
+            public void configure() throws Exception {
+                from("vertx:" + EBAY_REQUEST_VTX)
+                        .transform(constant("{\"OK\":\"ok\"}"))
+                        .to("log:result");
 
+                from("direct:getItems")
+                        .id("get-items-from-db")
+                        .process(exchange -> {
+                            Iterable<Item> items = itemRepository.findAll();
+                            exchange.getIn().setBody(items);
+                        });
 
-        from("direct:remoteEbayApi")
-                .id("get-items-route")
-                .removeHeaders("CamelHttp*")
-                .to(endpoints.get("Finding") + getParams())
-                .split().jsonpathWriteAsString("$.findItemsByKeywordsResponse[0].searchResult[0].item")
-                .bean(convert)
-                .bean(evaluate)
-                .process(exchange -> {
-                    Item item = exchange.getIn().getBody(Item.class);
-                    logger.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());
-                    itemRepository.save(item);
-                })
-                .to("log:item")
-                .to("direct:getImage");
+                from("direct:remoteEbayApi")
+                        .id("get-items-route")
+                        .removeHeaders("CamelHttp*")
+                        .to(endpoints.get("Finding") + getParams())
+                        .split().jsonpathWriteAsString("$.findItemsByKeywordsResponse[0].searchResult[0].item")
+                        .bean(convert)
+                        .bean(evaluate)
+                        .process(exchange -> {
+                            Item item = exchange.getIn().getBody(Item.class);
+                            EbayApi.log.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());
+                            itemRepository.save(item);
+                        })
+                        .to("log:item")
+                        .to("direct:getImage");
 
-        from("direct:getImage")
+                from("direct:getImage")
 //		.filter().simple("${body.process} == true")
-                .setHeader("Accept", simple("image/jpeg"))
-                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
-                .process(exchange -> {
-                    Item item = exchange.getIn().getBody(Item.class);
-                    exchange.getIn().setBody(item.getGaleryURL().replace("https", "https4"));
-                    logger.info("imageURL: {}", item.getGaleryURL());
-                    exchange.getIn().setHeader("imageFile", "ebay-" + item.getItemId());
-                    exchange.getIn().setHeader("itemId", item.getItemId());
-                })
-                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
-                .toD("${body}")
-                .marshal().base64()
-                .process(exchange -> {
-                    String imageStr = exchange.getIn().getBody(String.class);
-                    logger.info(imageStr);
-                    Optional<Item> optItem = itemRepository.findById(exchange.getIn().getHeader("itemId").toString());
-                    if (optItem.isPresent()) {
-                        Item item = optItem.get();
-                        item.setImage64BaseStr(imageStr);
-                        logger.info("saving {}", item);
-                        itemRepository.save(item);
-                    }
-                })
-                .unmarshal().base64()
-                .toD("file:///tmp/ebay/?fileName=${header.imageFile}.jpg")
-                .to("log:image");
+                        .setHeader("Accept", simple("image/jpeg"))
+                        .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                        .process(exchange -> {
+                            Item item = exchange.getIn().getBody(Item.class);
+                            exchange.getIn().setBody(item.getGaleryURL().replace("https", "https4"));
+                            EbayApi.log.info("imageURL: {}", item.getGaleryURL());
+                            exchange.getIn().setHeader("imageFile", "ebay-" + item.getItemId());
+                            exchange.getIn().setHeader("itemId", item.getItemId());
+                        })
+                        .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                        .toD("${body}")
+                        .marshal().base64()
+                        .process(exchange -> {
+                            String imageStr = exchange.getIn().getBody(String.class);
+                            EbayApi.log.info(imageStr);
+                            Optional<Item> optItem = itemRepository.findById(exchange.getIn().getHeader("itemId").toString());
+                            if (optItem.isPresent()) {
+                                Item item = optItem.get();
+                                item.setImage64BaseStr(imageStr);
+                                EbayApi.log.info("saving {}", item);
+                                itemRepository.save(item);
+                            }
+                        })
+                        .unmarshal().base64()
+                        .toD("file:///tmp/ebay/?fileName=${header.imageFile}.jpg")
+                        .to("log:image");
+            }
+        };
 
     }
 
@@ -147,7 +146,5 @@ public class EbayApi extends RouteBuilder implements IApiCall {
         params.put("keywords", "drone");
         params.put("paginationInput.entriesPerPage", "10");
         return IApiCall.canonicalQueryString(params);
-
     }
-
 }
