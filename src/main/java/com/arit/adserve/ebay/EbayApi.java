@@ -3,7 +3,7 @@ package com.arit.adserve.ebay;
 import com.arit.adserve.comm.IApiCall;
 import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
-import com.arit.adserve.entity.repository.ItemRepository;
+import com.arit.adserve.entity.service.ItemService;
 import com.arit.adserve.rules.Evaluate;
 import io.vertx.core.AbstractVerticle;
 import org.apache.camel.CamelContext;
@@ -50,7 +50,7 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
     private Evaluate evaluate;
 
     @Autowired
-    private ItemRepository itemRepository;
+    private ItemService itemService;
 
     public EbayApi() {
         endpoints.put("Finding", "https4://svcs.ebay.com/services/search/FindingService/v1?");
@@ -76,13 +76,14 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
         return new RouteBuilder() {
             public void configure() throws Exception {
                 from("vertx:" + EBAY_REQUEST_VTX)
-                        .transform(constant("{\"OK\":\"ok\"}"))
-                        .to("log:result");
+                        .routeId("vertx-ebay-req-bridge")
+                        .to("direct:getItems")
+                        .id("vertx-ebay-req-bridge-end");
 
                 from("direct:getItems")
                         .id("get-items-from-db")
                         .process(exchange -> {
-                            Iterable<Item> items = itemRepository.findAll();
+                            Iterable<Item> items = itemService.findAll(0, 10);
                             exchange.getIn().setBody(items);
                         });
 
@@ -95,8 +96,8 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
                         .bean(evaluate)
                         .process(exchange -> {
                             Item item = exchange.getIn().getBody(Item.class);
-                            EbayApi.log.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());
-                            itemRepository.save(item);
+                            log.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());
+                            itemService.save(item);
                         })
                         .to("log:item")
                         .to("direct:getImage");
@@ -108,7 +109,7 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
                         .process(exchange -> {
                             Item item = exchange.getIn().getBody(Item.class);
                             exchange.getIn().setBody(item.getGaleryURL().replace("https", "https4"));
-                            EbayApi.log.info("imageURL: {}", item.getGaleryURL());
+                            log.info("imageURL: {}", item.getGaleryURL());
                             exchange.getIn().setHeader("imageFile", "ebay-" + item.getItemId());
                             exchange.getIn().setHeader("itemId", item.getItemId());
                         })
@@ -117,13 +118,13 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
                         .marshal().base64()
                         .process(exchange -> {
                             String imageStr = exchange.getIn().getBody(String.class);
-                            EbayApi.log.info(imageStr);
-                            Optional<Item> optItem = itemRepository.findById(exchange.getIn().getHeader("itemId").toString());
+                            log.info(imageStr);
+                            Optional<Item> optItem = Optional.ofNullable(itemService.findById(exchange.getIn().getHeader("itemId").toString()));
                             if (optItem.isPresent()) {
                                 Item item = optItem.get();
                                 item.setImage64BaseStr(imageStr);
                                 EbayApi.log.info("saving {}", item);
-                                itemRepository.save(item);
+                                itemService.save(item);
                             }
                         })
                         .unmarshal().base64()

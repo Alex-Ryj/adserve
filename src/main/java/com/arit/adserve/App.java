@@ -2,6 +2,7 @@ package com.arit.adserve;
 
 import com.arit.adserve.controller.ServerVerticle;
 import com.arit.adserve.ebay.EbayApi;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.vertx.VertxComponent;
@@ -36,8 +37,9 @@ public class App {
     }
 
     public void deployVerticle() {
+        DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(applicationContext.getBean(ServerVerticle.class));
-        vertx.deployVerticle(applicationContext.getBean(EbayApi.class));
+        vertx.deployVerticle(applicationContext.getBean(EbayApi.class, optionsWorker));
     }
 
     @Bean
