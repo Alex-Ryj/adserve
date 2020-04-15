@@ -39,7 +39,7 @@ public class App {
     public void deployVerticle() {
         DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(applicationContext.getBean(ServerVerticle.class));
-        vertx.deployVerticle(applicationContext.getBean(EbayApi.class, optionsWorker));
+        vertx.deployVerticle(applicationContext.getBean(EbayApi.class), optionsWorker);
     }
 
     @Bean

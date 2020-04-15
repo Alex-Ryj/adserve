@@ -6,16 +6,21 @@ import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.service.ItemService;
 import com.arit.adserve.rules.Evaluate;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.json.JsonObject;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,7 +34,7 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
 
     public static final String EBAY_REQUEST_VTX = "ebayReq";
 
-    public static final String EBAY_RESPONSE_CAMEL = "ebayResCamel";
+    public static final String EBAY_GET_IMAGE_CAMEL = "ebayResImgCamel";
 
     @Autowired
     private CamelContext camelContext;
@@ -76,9 +81,9 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
         return new RouteBuilder() {
             public void configure() throws Exception {
                 from("vertx:" + EBAY_REQUEST_VTX)
-                        .routeId("vertx-ebay-req-bridge")
+                        .routeId("route-vertx-ebay-req-bridge")
                         .to("direct:getItems")
-                        .id("vertx-ebay-req-bridge-end");
+                        .id("id-vertx-ebay-req-bridge-end");
 
                 from("direct:getItems")
                         .id("get-items-from-db")
@@ -130,9 +135,20 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
                         .unmarshal().base64()
                         .toD("file:///tmp/ebay/?fileName=${header.imageFile}.jpg")
                         .to("log:image");
+
+              from("vertx:" + EBAY_GET_IMAGE_CAMEL)
+                        .routeId("route-get-file-http")
+                      .process(exchange -> {
+                          File file = new File("C://Temp/img.png");
+                          String fileStr = Base64.getEncoder().encodeToString(IOUtils.toByteArray(new FileInputStream(file)));
+                          exchange.getIn().setBody(fileStr);
+                          exchange.getIn().removeHeaders("*");
+                          exchange.getOut().setBody(new JsonObject().put("img", fileStr));
+                      })
+              .log("${body}");
+
             }
         };
-
     }
 
     private String getParams() throws UnsupportedEncodingException {
