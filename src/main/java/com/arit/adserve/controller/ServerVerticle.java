@@ -52,7 +52,6 @@ public class ServerVerticle extends AbstractVerticle {
     private Future<Void> startHttpServer() {
         Promise<Void> promise = Promise.promise();
         HttpServer server = vertx.createHttpServer();
-
         Router router = Router.router(vertx);
         router.get("/").handler(this::indexHandler);
         router.get("/wiki/:page").handler(this::pageRenderingHandler);
