@@ -146,7 +146,7 @@
 			<version>${vert.x.version}</version>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>

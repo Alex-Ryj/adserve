@@ -1,4 +1,4 @@
-package com.arit.adserve.vertx;
+package com.arit.adserve.verticle;
 
 import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
@@ -6,8 +6,6 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(VertxUnitRunner.class)
 public class VertxTest {

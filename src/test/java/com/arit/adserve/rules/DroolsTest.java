@@ -1,4 +1,4 @@
-package com.arit.adserve.ruls;
+package com.arit.adserve.rules;
 
 import static org.junit.Assert.assertTrue;
 
@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.kie.api.runtime.KieSession;
 
 import com.arit.adserve.entity.Item;
-import com.arit.adserve.rules.DroolsConfig;
 
 public class DroolsTest {
 

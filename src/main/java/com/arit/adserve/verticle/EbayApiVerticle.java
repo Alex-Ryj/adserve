@@ -1,4 +1,4 @@
-package com.arit.adserve.ebay;
+package com.arit.adserve.verticle;
 
 import com.arit.adserve.comm.IApiCall;
 import com.arit.adserve.comm.ItemJsonConvert;
@@ -7,6 +7,7 @@ import com.arit.adserve.entity.service.ItemService;
 import com.arit.adserve.rules.Evaluate;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -25,10 +26,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
-public class EbayApi extends AbstractVerticle implements IApiCall {
-
-    private static Logger log = LoggerFactory.getLogger(EbayApi.class);
+public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
 
     private Map<String, String> endpoints = new HashMap<>();
 
@@ -57,7 +57,7 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
     @Autowired
     private ItemService itemService;
 
-    public EbayApi() {
+    public EbayApiVerticle() {
         endpoints.put("Finding", "https4://svcs.ebay.com/services/search/FindingService/v1?");
         endpoints.put("Shopping", "http4://open.api.ebay.com/shopping?");
         endpoints.put("SOAP", "https4://api.ebay.com/wsapi");
@@ -128,7 +128,7 @@ public class EbayApi extends AbstractVerticle implements IApiCall {
                             if (optItem.isPresent()) {
                                 Item item = optItem.get();
                                 item.setImage64BaseStr(imageStr);
-                                EbayApi.log.info("saving {}", item);
+                                EbayApiVerticle.log.info("saving {}", item);
                                 itemService.save(item);
                             }
                         })

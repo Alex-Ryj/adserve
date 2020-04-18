@@ -1,9 +1,10 @@
 package com.arit.adserve;
 
-import com.arit.adserve.controller.ServerVerticle;
-import com.arit.adserve.ebay.EbayApi;
+import com.arit.adserve.verticle.ServerVerticle;
+import com.arit.adserve.verticle.EbayApiVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.vertx.VertxComponent;
 import org.apache.camel.spring.boot.CamelContextConfiguration;
@@ -17,12 +18,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
-import javax.annotation.PostConstruct;
-
 /**
  * Hello api world!
  *
  */
+@Slf4j
 @SpringBootApplication
 @ComponentScan
 public class App {
@@ -36,10 +36,10 @@ public class App {
         SpringApplication.run(App.class, args);
     }
 
-    public void deployVerticle() {
+    public void deployVerticles() {
         DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(applicationContext.getBean(ServerVerticle.class));
-        vertx.deployVerticle(applicationContext.getBean(EbayApi.class), optionsWorker);
+        vertx.deployVerticle(applicationContext.getBean(EbayApiVerticle.class), optionsWorker);
     }
 
     @Bean
@@ -47,7 +47,7 @@ public class App {
         return new CamelContextConfiguration() {
             @Override
             public void beforeApplicationStart(CamelContext context) {
-                System.out.println("camel context before start: " + context);
+                log.info("camel context before start: " + context);
                 VertxComponent vertxComponent = new VertxComponent();
                 vertxComponent.setVertx(vertx);
                 context.addComponent("vertx", vertxComponent);
@@ -55,8 +55,8 @@ public class App {
 
             @Override
             public void afterApplicationStart(CamelContext camelContext) {
-                System.out.println("camel context after start: " + camelContext);
-                deployVerticle();
+                log.info("camel context after start: " + camelContext);
+                deployVerticles();
             }
         };
     }

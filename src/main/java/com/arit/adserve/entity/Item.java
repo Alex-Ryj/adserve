@@ -25,8 +25,8 @@ public class Item {
 	@NonNull
 	private String itemId;
 	@NonNull
-	private String title, source;
-	private String description, productId, galeryURL, viewItemURL, 
+	private String title;
+	private String description, source, productId, galeryURL, viewItemURL,
 				   location, country, condition, priceForamtted, currency;
 	@Lob
 	private String image64BaseStr;

@@ -1,6 +1,5 @@
-package com.arit.adserve.controller;
+package com.arit.adserve.verticle;
 
-import com.arit.adserve.ebay.EbayApi;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -8,22 +7,19 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.Base64;
 
-import java.util.Date;
-
+@Slf4j
 @Service
 public class ServerVerticle extends AbstractVerticle {
-
-    private static Logger log = LoggerFactory.getLogger(ServerVerticle.class);
 
     @Override
     public void start() throws Exception {
@@ -33,7 +29,7 @@ public class ServerVerticle extends AbstractVerticle {
         vertx.createHttpServer()
                 .requestHandler(request -> {
                     // This handler gets called for each request that arrives on the server
-                    vertx.eventBus().request(EbayApi.EBAY_GET_IMAGE_CAMEL, "test", reply -> {
+                    vertx.eventBus().request(EbayApiVerticle.EBAY_GET_IMAGE_CAMEL, "test", reply -> {
                         if(reply.succeeded()) {
                             log.info("received: {}", reply.result().body());
                             HttpServerResponse response = request.response();
@@ -79,7 +75,7 @@ public class ServerVerticle extends AbstractVerticle {
 
         DeliveryOptions options = new DeliveryOptions().addHeader("action", "all-pages"); // <2>
 
-        vertx.eventBus().request(EbayApi.EBAY_REQUEST_VTX, new JsonObject(), options, reply -> {  // <1>
+        vertx.eventBus().request(EbayApiVerticle.EBAY_REQUEST_VTX, new JsonObject(), options, reply -> {  // <1>
             if (reply.succeeded()) {
                 JsonObject body = (JsonObject) reply.result().body();   // <3>
                 context.put("title", "Wiki home");
