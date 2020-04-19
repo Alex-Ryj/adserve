@@ -70,7 +70,7 @@ public class EBayCamelTest {
                 });
 
         camelContext.start();
-        MockEndpoint mockOut = camelContext.getEndpoint("mock:out", MockEndpoint.class);
+        MockEndpoint mockOut = camelContext.getEndpoint("mock:out1", MockEndpoint.class);
         mockOut.expectedMessageCount(1);
         template.sendBody("direct:in1","test");
         mockOut.assertIsSatisfied();

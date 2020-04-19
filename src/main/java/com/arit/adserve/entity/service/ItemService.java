@@ -2,15 +2,12 @@ package com.arit.adserve.entity.service;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.persistence.PersistenceException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.repository.ItemRepository;
 

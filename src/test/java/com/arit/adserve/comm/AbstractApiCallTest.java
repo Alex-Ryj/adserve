@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.arit.adserve.providers.IApiCall;
 import org.junit.Test;
 
 

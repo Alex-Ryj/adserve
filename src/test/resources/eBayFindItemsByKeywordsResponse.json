@@ -1,0 +1,133 @@
+{
+  "findItemsByKeywordsResponse": {
+    "xmlns:ms": "https://www.ebay.com/marketplace/services",
+    "xmlns": "https://www.ebay.com/marketplace/search/v1/services",
+    "ack": "Success",
+    "version": "1.12.0",
+    "timestamp": "2015-09-04T00:46:55.581Z",
+    "searchResult": {
+      "count": "2",
+      "item": [
+        {
+          "itemId": "140343270924",
+          "title": "NINTENDO WII GAME HARRY POTTER ORDER OF THE PHOENIX NEW",
+          "globalId": "EBAY-US",
+          "subtitle": "??FAST SECURE SHIPPING SEE OUR STORE 100,000+ GAMES??",
+          "primaryCategory": {
+            "categoryId": "139973",
+            "categoryName": "Games"
+          },
+          "galleryURL": "
+         https://thumbs1.ebaystatic.com/pict/1403432709248080_1.jpg",
+          "viewItemURL": "https://cgi.ebay.com/NINTENDO-WII-GAME-HARRY-POTTER-ORDER-OF-THE-
+         PHOENIX-NEW_W0QQitemZ140343270924QQcmdZViewItemQQptZVideo_Games_Games?hash=
+         item20ad1c5e0c",
+          "productId": {
+            "type": "ReferenceID",
+            "#text": "56277256"
+          },
+          "paymentMethod": [
+            "PayPal",
+            "VisaMC",
+            "Discover"
+          ],
+          "autoPay": "false",
+          "postalCode": "42***",
+          "location": "Pembroke,KY,USA",
+          "country": "US",
+          "shippingInfo": {
+            "shippingServiceCost": {
+              "currencyId": "USD",
+              "#text": "0.0"
+            },
+            "shippingType": "Free",
+            "shipToLocations": "Worldwide"
+          },
+          "sellingStatus": {
+            "currentPrice": {
+              "currencyId": "USD",
+              "#text": "30.99"
+            },
+            "convertedCurrentPrice": {
+              "currencyId": "USD",
+              "#text": "30.99"
+            },
+            "bidCount": "0",
+            "sellingState": "Active",
+            "timeLeft": "P0DT5H35M49S"
+          },
+          "listingInfo": {
+            "bestOfferEnabled": "false",
+            "buyItNowAvailable": "true",
+            "buyItNowPrice": {
+              "currencyId": "USD",
+              "#text": "33.94"
+            },
+            "convertedBuyItNowPrice": {
+              "currencyId": "USD",
+              "#text": "33.94"
+            },
+            "startTime": "2015-09-01T06:22:44.000Z",
+            "endTime": "2015-09-04T06:22:44.000Z",
+            "listingType": "AuctionWithBIN",
+            "gift": "false"
+          }
+        },
+        {
+          "itemId": "230371938681",
+          "title": "Harry Potter and the Order of the Phoenix HD-DVD",
+          "globalId": "EBAY-US",
+          "primaryCategory": {
+            "categoryId": "617",
+            "categoryName": "DVD, HD DVD & Blu-ray"
+          },
+          "galleryURL": "
+         https://thumbs1.ebaystatic.com/pict/2303719386818080_1.jpg",
+          "viewItemURL": "https://cgi.ebay.com/Harry-Potter-and-the-Order-of-the-Phoenix-HD-
+         DVD_W0QQitemZ230371938681QQcmdZViewItemQQptZUS_DVD_HD_DVD_Blu_ray?hash=
+         item35a33cd179",
+          "productId": {
+            "type": "ReferenceID",
+            "#text": "62929195"
+          },
+          "paymentMethod": "PayPal",
+          "autoPay": "false",
+          "postalCode": "21***",
+          "location": "Frederick,MD,USA",
+          "country": "US",
+          "shippingInfo": {
+            "shippingType": "Calculated",
+            "shipToLocations": "US"
+          },
+          "sellingStatus": {
+            "currentPrice": {
+              "currencyId": "USD",
+              "#text": "2.5"
+            },
+            "convertedCurrentPrice": {
+              "currencyId": "USD",
+              "#text": "2.5"
+            },
+            "bidCount": "8",
+            "sellingState": "Active",
+            "timeLeft": "P0DT0H1M28S"
+          },
+          "listingInfo": {
+            "bestOfferEnabled": "false",
+            "buyItNowAvailable": "false",
+            "startTime": "2015-08-28T00:48:23.000Z",
+            "endTime": "2015-09-04T00:48:23.000Z",
+            "listingType": "Auction",
+            "gift": "false"
+          }
+        }
+      ]
+    },
+    "paginationOutput": {
+      "totalPages": "433",
+      "totalEntries": "866",
+      "pageNumber": "1",
+      "entriesPerPage": "2"
+    }
+  }
+}

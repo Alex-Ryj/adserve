@@ -15,6 +15,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -71,6 +73,10 @@ public class App {
         ppc.setLocations( resources );
         ppc.setIgnoreUnresolvablePlaceholders( true );
         return ppc;
+    }
+
+    @Bean public ConversionService conversionService() {
+        return new DefaultConversionService();
     }
 
 }

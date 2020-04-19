@@ -1,4 +1,4 @@
-package com.arit.adserve.comm;
+package com.arit.adserve.providers;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

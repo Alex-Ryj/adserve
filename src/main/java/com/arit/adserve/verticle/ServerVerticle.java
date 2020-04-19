@@ -12,8 +12,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.Base64;
 
@@ -29,7 +27,7 @@ public class ServerVerticle extends AbstractVerticle {
         vertx.createHttpServer()
                 .requestHandler(request -> {
                     // This handler gets called for each request that arrives on the server
-                    vertx.eventBus().request(EbayApiVerticle.EBAY_GET_IMAGE_CAMEL, "test", reply -> {
+                    vertx.eventBus().request(EbayApiVerticle.EBAY_GET_IMAGE_CAMEL_VTX, "test", reply -> {
                         if(reply.succeeded()) {
                             log.info("received: {}", reply.result().body());
                             HttpServerResponse response = request.response();
