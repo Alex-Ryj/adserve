@@ -1,0 +1,32 @@
+//created on: Apr 20, 2020
+package com.arit.adserve.rules.ebay
+
+import com.arit.adserve.providers.ebay.EBayFindRequest
+
+rule "Keep retrieving item"
+
+    when
+        //conditions
+    then
+        //actions
+
+end
+
+rule "Update existing items"
+
+    when
+        //conditions
+    then
+        //actions
+
+end
+
+rule "Wait"
+
+    when
+        //conditions
+    then
+        //actions
+
+end
+

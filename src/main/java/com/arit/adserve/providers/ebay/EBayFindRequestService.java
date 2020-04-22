@@ -21,11 +21,18 @@ public class EBayFindRequestService implements IApiCall {
 
     @Value("${EBAY_APP_ID}")
     private String ebayAppId;
+
+    @Value("${EBAY_GLOBAL_ID}")
     private String ebayGlobalId;
+
+    @Value("${EBAY_SITE_ID}")
     private String ebaySiteId;
+
     @Value("${ebay.search.keywords.list}")
     private List<String> searchKeyWords;
+
     private Map<String, String> itemFilters;
+
     private Map<String, String> aspectFilters;
 
     private static EBayFindRequest eBayFindRequest;
@@ -44,7 +51,7 @@ public class EBayFindRequestService implements IApiCall {
         params.put("Content-Type", "text/xml;charset=utf-8");
         params.put("OPERATION-NAME", "findItemsByKeywords");
         params.put("keywords", "drone");
-        params.put("paginationInput.entriesPerPage", "10");
+        params.put("paginationInput.entriesPerPage", "100");
         return IApiCall.canonicalQueryString(params);
     }
 
