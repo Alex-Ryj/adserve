@@ -7,22 +7,38 @@ import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
 import org.kie.api.builder.KieModule;
 import org.kie.api.builder.KieRepository;
-import org.kie.api.builder.ReleaseId;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.StatelessKieSession;
 import org.kie.internal.io.ResourceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
+import lombok.extern.slf4j.Slf4j;
+
+
+@Slf4j
 @Configuration
 public class DroolsConfig {
 
 	private static final String RULES_PATH = "rules/";
-	private KieServices kieServices = KieServices.Factory.get();
+	private static KieServices kieServices = KieServices.Factory.get();
+	private static KieContainer kContainer;
+	private static Logger rulesLogger = LoggerFactory.getLogger("RulesLogger");
+	
+	static {
+		try {
+			kContainer = getKContiner();
+		} catch (IOException e) {
+			log.error("kie inizialization", e);
+		}
+	}
 
-	private KieFileSystem getKieFileSystem() throws IOException {
+	private static KieFileSystem getKieFileSystem() throws IOException {
 		KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
 		for (Resource file : getRuleFiles()) {
 			kieFileSystem.write(ResourceFactory.newClassPathResource(RULES_PATH + file.getFilename(), "UTF-8"));
@@ -31,12 +47,12 @@ public class DroolsConfig {
 
 	}
 
-	private Resource[] getRuleFiles() throws IOException {
+	private static Resource[] getRuleFiles() throws IOException {
 		ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 		return resourcePatternResolver.getResources("classpath*:" + RULES_PATH + "**/*.*");
 	}
 
-	public KieContainer getKieContainer() throws IOException {
+	public static KieContainer getKieContainer() throws IOException {
 		getKieRepository();
 		KieBuilder kb = kieServices.newKieBuilder(getKieFileSystem());
 		kb.buildAll();
@@ -44,23 +60,29 @@ public class DroolsConfig {
 		return kieServices.newKieContainer(kieModule.getReleaseId());
 	}
 
-	private void getKieRepository() {
+	private static void getKieRepository() {
 		final KieRepository kieRepository = kieServices.getRepository();
-		kieRepository.addKieModule(new KieModule() {
-			public ReleaseId getReleaseId() {
-				return kieRepository.getDefaultReleaseId();
-			}
-		});
+		kieRepository.addKieModule(kieRepository::getDefaultReleaseId);
 	}
-
-	public KieSession getKieSession() throws IOException {
+	
+	private static KieContainer getKContiner() throws IOException {
 		getKieRepository();
 		KieBuilder kb = kieServices.newKieBuilder(getKieFileSystem());
 		kb.buildAll();
 		KieModule kieModule = kb.getKieModule();
-		KieContainer kContainer = kieServices.newKieContainer(kieModule.getReleaseId());
-		return kContainer.newKieSession();
+		return kieServices.newKieContainer(kieModule.getReleaseId());
+	}
 
+	public KieSession getKieSession() throws IOException {				
+		KieSession kieSession = kContainer.newKieSession();
+		kieSession.setGlobal("logger", rulesLogger);
+		return kieSession;
+	}
+	
+	public StatelessKieSession getKieStatlessSession() throws IOException {			
+		StatelessKieSession kieSession = kContainer.newStatelessKieSession();
+		kieSession.setGlobal("logger", rulesLogger);
+		return kieSession;
 	}
 
 }

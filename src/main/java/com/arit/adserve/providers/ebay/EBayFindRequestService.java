@@ -1,14 +1,14 @@
 package com.arit.adserve.providers.ebay;
 
-import com.arit.adserve.providers.IApiCall;
-import lombok.Synchronized;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.arit.adserve.providers.IApiCall;
 
 /**
  * Service to manage eBay Finding API requests (5,000 API calls per day limit for starters)
@@ -41,17 +41,18 @@ public class EBayFindRequestService implements IApiCall {
         return null;
     }
 
-    private String getParams() throws UnsupportedEncodingException {
+    private String getParams(String keywords, int itemsPerPage, int pageNumber) throws UnsupportedEncodingException {
         Map<String, String> params = new HashMap<>();
+        params.put("keywords", keywords);
+        params.put("paginationInput.entriesPerPage", itemsPerPage + ""); 
+        params.put("paginationInput.pageNumber", pageNumber + "");  
         params.put("SECURITY-APPNAME", ebayAppId);
         params.put("SERVICE-VERSION", "1.0.0");
         params.put("GLOBAL-ID", ebayGlobalId);
         params.put("siteid", ebaySiteId);
         params.put("RESPONSE-DATA-FORMAT", "JSON");
         params.put("Content-Type", "text/xml;charset=utf-8");
-        params.put("OPERATION-NAME", "findItemsByKeywords");
-        params.put("keywords", "drone");
-        params.put("paginationInput.entriesPerPage", "100");
+        params.put("OPERATION-NAME", "findItemsByKeywords");     
         return IApiCall.canonicalQueryString(params);
     }
 

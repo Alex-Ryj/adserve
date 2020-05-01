@@ -1,0 +1,74 @@
+//created on: Apr 20, 2020
+package com.arit.adserve.rules.ebay
+
+global org.slf4j.Logger logger;
+
+import com.arit.adserve.providers.ebay.EBayFindRequest;
+import com.arit.adserve.providers.ebay.RequestState;
+
+dialect "mvel"
+
+rule "request is in kb"
+agenda-group "ebayRequest"
+    when    
+        $request: EBayFindRequest()
+    then
+         logger.info("fired: EBayFindRequest() is in: {}", $request);     
+end
+
+rule "Need to retrieve more items"
+agenda-group "ebayRequest"
+    when    
+        $request: EBayFindRequest( itemsTotal < itemsMaxRequired && state != RequestState.RETRIEVE_ITEMS 
+        && state != RequestState.CHANGE_SEARCH )
+    then
+        $request.state = RequestState.RETRIEVE_ITEMS;    
+        $request.pageNumber = 1;
+        logger.info("fired: Need to retrieve more items: " + $request); 
+        retract($request);      
+end
+
+rule "Need to retrieve items page by page"
+agenda-group "ebayRequest"
+    when    
+        $request: EBayFindRequest( pageNumber * itemsPerPage  < itemsMaxRequired && pagesTotal >= pageNumber + 1 
+         && state ==  RequestState.RETRIEVE_ITEMS )
+    then
+        System.out.println("fired: Need to retrieve items page by page: " + $request); 
+        $request.pageNumber = $request.pageNumber + 1;   
+        retract($request);
+end
+
+rule "Need to update items"
+agenda-group "ebayRequest"
+    when    
+        $request: EBayFindRequest( itemsUpdatedToday < itemsMaxRequired && itemsTotal >= itemsMaxRequired )
+    then
+        System.out.println("fired: Need to update items: " + $request); 
+        $request.state = RequestState.UPDATE_ITEMS;
+        retract($request);
+end
+
+rule "All items updated today. Nothing to search"
+agenda-group "ebayRequest"
+    when    
+        $request: EBayFindRequest( itemsUpdatedToday >= itemsMaxRequired )
+    then
+        System.out.println("fired: All items updated today. Nothing to search: " + $request); 
+        $request.state = RequestState.WAIT;
+        $request.pageNumber = 1; 
+        retract($request);
+end
+
+rule "Required number of items is more than we can retreive with this request "
+agenda-group "ebayRequest"
+    when    
+        $request: EBayFindRequest( itemsTotalInRequest < itemsMaxRequired && pagesTotal == pageNumber )
+    then
+        System.out.println("fired: Required number of items is more than we can retreive with this request: " + $request); 
+        $request.state = RequestState.CHANGE_SEARCH;
+        $request.pageNumber = 1;  
+        System.out.println($request);
+end
+
+

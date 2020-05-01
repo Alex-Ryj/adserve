@@ -1,14 +1,10 @@
 package com.arit.adserve.verticle;
 
-import com.arit.adserve.providers.IApiCall;
-import com.arit.adserve.comm.ItemJsonConvert;
-import com.arit.adserve.entity.Item;
-import com.arit.adserve.entity.service.ItemService;
-import com.arit.adserve.providers.ebay.EBayFindRequestService;
-import com.arit.adserve.rules.Evaluate;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.json.JsonObject;
-import lombok.extern.slf4j.Slf4j;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Base64;
+import java.util.Optional;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -16,17 +12,20 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import com.arit.adserve.comm.ItemJsonConvert;
+import com.arit.adserve.entity.Item;
+import com.arit.adserve.entity.service.ItemService;
+import com.arit.adserve.providers.IApiCall;
+import com.arit.adserve.providers.ebay.EBayFindRequestService;
+import com.arit.adserve.rules.Evaluate;
+
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.json.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
-
 
 
     public static final String EBAY_REQUEST_VTX = "ebayReq";

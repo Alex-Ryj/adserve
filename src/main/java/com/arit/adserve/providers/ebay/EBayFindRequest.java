@@ -1,6 +1,7 @@
 package com.arit.adserve.providers.ebay;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,14 +20,15 @@ public class EBayFindRequest implements Serializable {
 	
 	private static Map<String, String> endpoints = new HashMap<>();
     private int pageNumber;
-    private int totalPages;
+    private int pagesTotal;
     private int itemsPerPage;
     private int itemsTotalInRequest;
-    private String searchWords;    
-    private int maxRequiredItems;
+    private String searchWords; 
+    private int itemsMaxRequired;
     private int itemsUpdatedToday;
     private int itemsTotal;
     private RequestState state;
+    private Date lastItemUpdate;
 
     static {
         endpoints.put("Finding", "https4://svcs.ebay.com/services/search/FindingService/v1?");
