@@ -35,13 +35,13 @@ public class EBayFindRequestService implements IApiCall {
 
     private Map<String, String> aspectFilters;
 
-    private static EBayFindRequest eBayFindRequest;
+    private final static EBayFindRequest eBayFindRequest = new EBayFindRequest();
 
     public String getRequestUrl() {
         return null;
     }
 
-    private String getParams(String keywords, int itemsPerPage, int pageNumber) throws UnsupportedEncodingException {
+    public String getParamsFindByKeywords(String keywords, int itemsPerPage, int pageNumber) throws UnsupportedEncodingException {
         Map<String, String> params = new HashMap<>();
         params.put("keywords", keywords);
         params.put("paginationInput.entriesPerPage", itemsPerPage + ""); 
@@ -56,27 +56,12 @@ public class EBayFindRequestService implements IApiCall {
         return IApiCall.canonicalQueryString(params);
     }
 
-    public String getEbayAppId() {
-        return ebayAppId;
-    }
+	public List<String> getSearchKeyWords() {
+		return searchKeyWords;
+	}
 
-    public void setEbayAppId(String ebayAppId) {
-        this.ebayAppId = ebayAppId;
-    }
+	public void setSearchKeyWords(List<String> searchKeyWords) {
+		this.searchKeyWords = searchKeyWords;
+	}
 
-    public String getEbayGlobalId() {
-        return ebayGlobalId;
-    }
-
-    public void setEbayGlobalId(String ebayGlobalId) {
-        this.ebayGlobalId = ebayGlobalId;
-    }
-
-    public String getEbaySiteId() {
-        return ebaySiteId;
-    }
-
-    public void setEbaySiteId(String ebaySiteId) {
-        this.ebaySiteId = ebaySiteId;
-    }
 }

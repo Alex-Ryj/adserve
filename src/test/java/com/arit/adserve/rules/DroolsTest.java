@@ -74,9 +74,41 @@ public class DroolsTest {
           assertEquals(2, fr.getPageNumber());
           kSession.dispose();
           
+          //need to change search to get more items
           kSession = new DroolsConfig().getKieSession();
           kSession.getAgenda().getAgendaGroup("ebayRequest").setFocus();
+          fr.setItemsTotal(200);        
+          fr.setItemsUpdatedToday(200);
+          fr.setItemsMaxRequired(300);
+          fr.setItemsTotalInRequest(200);
+          fr.setPageNumber(2);
           kSession.insert(fr);
+          kSession.fireAllRules();
+          assertEquals(RequestState.CHANGE_SEARCH, fr.getState());
+          assertEquals(1, fr.getPageNumber());
+          kSession.dispose();   
+          
+          //retrieved all required items, updating
+          kSession = new DroolsConfig().getKieSession();
+          kSession.getAgenda().getAgendaGroup("ebayRequest").setFocus();
+          fr.setItemsTotal(300);
+          kSession.insert(fr);
+          kSession.fireAllRules();
+          assertEquals(RequestState.UPDATE_ITEMS, fr.getState());
+          assertEquals(1, fr.getPageNumber());
+          kSession.dispose();   
+                     
+          //everything is up to date, waiting
+          kSession = new DroolsConfig().getKieSession();
+          kSession.getAgenda().getAgendaGroup("ebayRequest").setFocus();
+          fr.setItemsTotal(300);
+          fr.setItemsUpdatedToday(300);
+          kSession.insert(fr);
+          kSession.fireAllRules();
+          assertEquals(RequestState.WAIT, fr.getState());
+          assertEquals(1, fr.getPageNumber());
+          kSession.dispose();
+          
 	}
 
 }

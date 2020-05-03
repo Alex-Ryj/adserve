@@ -19,8 +19,7 @@ end
 rule "Need to retrieve more items"
 agenda-group "ebayRequest"
     when    
-        $request: EBayFindRequest( itemsTotal < itemsMaxRequired && state != RequestState.RETRIEVE_ITEMS 
-        && state != RequestState.CHANGE_SEARCH )
+        $request: EBayFindRequest( itemsTotal < itemsMaxRequired && state != RequestState.RETRIEVE_ITEMS )
     then
         $request.state = RequestState.RETRIEVE_ITEMS;    
         $request.pageNumber = 1;
@@ -34,8 +33,8 @@ agenda-group "ebayRequest"
         $request: EBayFindRequest( pageNumber * itemsPerPage  < itemsMaxRequired && pagesTotal >= pageNumber + 1 
          && state ==  RequestState.RETRIEVE_ITEMS )
     then
-        System.out.println("fired: Need to retrieve items page by page: " + $request); 
         $request.pageNumber = $request.pageNumber + 1;   
+        logger.info("fired: Need to retrieve items page by page: {}", $request); 
         retract($request);
 end
 

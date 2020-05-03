@@ -3,6 +3,8 @@ package com.arit.adserve.entity;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
@@ -27,6 +29,8 @@ public class Item {
 	private String itemId;
 	@NonNull
 	private String title;
+	@Column
+	@ElementCollection(targetClass=String.class)
 	private List<String> subTitles;
 	private String description, source, productId, galeryURL, viewItemURL,
 				   location, country, condition, priceForamtted, currency;
