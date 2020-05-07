@@ -100,7 +100,7 @@ public class FopTest {
             FileOutputStream fos = new FileOutputStream(new File("src/test/resources/fop/img/meta.png"));
             fos.write(resultBytes);
             fos.close();
-            System.out.println("meta data in png:" + Utils.readCustomData(resultBytes, "key_meta"));
+           
             
         } finally {
             out.close();

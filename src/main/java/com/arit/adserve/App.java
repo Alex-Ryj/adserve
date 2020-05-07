@@ -1,10 +1,5 @@
 package com.arit.adserve;
 
-import com.arit.adserve.verticle.ServerVerticle;
-import com.arit.adserve.verticle.EbayApiVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Vertx;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.vertx.VertxComponent;
 import org.apache.camel.spring.boot.CamelContextConfiguration;
@@ -19,6 +14,14 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+
+import com.arit.adserve.verticle.EbayApiVerticle;
+import com.arit.adserve.verticle.ItemVerticle;
+import com.arit.adserve.verticle.ServerVerticle;
+
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Hello api world!
@@ -42,6 +45,7 @@ public class App {
         DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(applicationContext.getBean(ServerVerticle.class));
         vertx.deployVerticle(applicationContext.getBean(EbayApiVerticle.class), optionsWorker);
+        vertx.deployVerticle(applicationContext.getBean(ItemVerticle.class), optionsWorker);
     }
 
     @Bean
@@ -58,6 +62,12 @@ public class App {
             @Override
             public void afterApplicationStart(CamelContext camelContext) {
                 log.info("camel context after start: " + camelContext);
+                try {
+					camelContext.start();
+				} catch (Exception e) {
+					log.error("camel failed to start", e);
+					System.exit(1);					
+				}
                 deployVerticles();
             }
         };

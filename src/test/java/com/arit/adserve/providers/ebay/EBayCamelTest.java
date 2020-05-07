@@ -6,6 +6,7 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +28,10 @@ public class EBayCamelTest {
 
     @Autowired
     private ProducerTemplate template;
-
-    @Before
-    public void setUp(){
-        EbayApiVerticle ebayApi = applicationContext.getBean(EbayApiVerticle.class);
-//        ebayApi.start();
-    }
+    
+    @Autowired
+    private EbayApiVerticle ebayApi;
+ 
 
     @Test
     public void vertxRouteTest() throws Exception {

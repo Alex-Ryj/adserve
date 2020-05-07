@@ -1,6 +1,7 @@
 package com.arit.adserve.entity.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.PersistenceException;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +67,10 @@ public class ItemService {
 
     public Long count() {
         return itemRepository.count();
+    }
+    
+    public Long countItemsUodatedAfter(Date date) {
+        return itemRepository.countItemsUpdatedAfter(date);
     }
 
     public boolean existsById(String id) {

@@ -16,7 +16,7 @@ import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.service.ItemService;
 import com.arit.adserve.providers.IApiCall;
-import com.arit.adserve.providers.ebay.EBayFindRequestService;
+import com.arit.adserve.providers.ebay.EBayRequestService;
 import com.arit.adserve.rules.Evaluate;
 
 import io.vertx.core.AbstractVerticle;
@@ -45,7 +45,7 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
     private ItemService itemService;
 
     @Autowired
-    private EBayFindRequestService eBayFindRequestService;
+    private EBayRequestService eBayFindRequestService;
 
 
 
@@ -74,7 +74,7 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
                 from("direct:remoteEbayApi")
                         .id("get-items-route")
                         .removeHeaders("CamelHttp*")
-                        .to(eBayFindRequestService.getRequestUrl())
+                        .to(eBayFindRequestService.getFindRequestUrl())
                         .process(exchange -> {
 
                         })

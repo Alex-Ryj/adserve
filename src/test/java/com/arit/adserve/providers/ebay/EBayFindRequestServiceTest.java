@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EBayFindRequestServiceTest {
 	
 	@Autowired
-	EBayFindRequestService service;
+	EBayRequestService service;
 	
 	@Test
 	public void testGetListProps() throws Exception {

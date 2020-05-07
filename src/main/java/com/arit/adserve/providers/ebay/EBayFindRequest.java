@@ -18,22 +18,15 @@ public class EBayFindRequest implements Serializable {
   
 	private static final long serialVersionUID = 1L;
 	
-	private static Map<String, String> endpoints = new HashMap<>();
-    private int pageNumber;
-    private int pagesTotal;
-    private int itemsPerPage;
-    private int itemsTotalInRequest;
+    private long pageNumber;
+    private long pagesTotal;
+    private long itemsPerPage;
+    private long itemsTotalInRequest;
     private String searchWords; 
-    private int itemsMaxRequired;
-    private int itemsUpdatedToday;
-    private int itemsTotal;
+    private long itemsMaxRequired;
+    private long itemsUpdatedToday;
+    private long itemsTotal;
     private RequestState state;
-    private Date lastItemUpdate;
-
-    static {
-        endpoints.put("Finding", "https4://svcs.ebay.com/services/search/FindingService/v1?");
-        endpoints.put("Shopping", "http4://open.api.ebay.com/shopping?");
-        endpoints.put("SOAP", "https4://api.ebay.com/wsapi");
-    }  
+    private Date lastItemUpdate;   
 
 }
