@@ -1,16 +1,7 @@
 package com.arit.adserve.verticle;
 
-import com.arit.adserve.entity.Item;
-import com.arit.adserve.entity.repository.ItemRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.jackson.JacksonCodec;
-import io.vertx.ext.unit.TestSuite;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,8 +12,17 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.arit.adserve.entity.Item;
+import com.arit.adserve.entity.ItemId;
+import com.arit.adserve.entity.repository.ItemRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.jackson.JacksonCodec;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -44,11 +44,11 @@ public class ItemVerticleTest implements ApplicationContextAware {
         DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(applicationContext.getBean(ItemVerticle.class), optionsWorker);
         Item item = new Item();
-        item.setItemId("id");
+        item.setProviderItemId("id");
         item.setTitle("title");
         itemRepository.save(item);
         Item item1 = new Item();
-        item1.setItemId("id1");
+        item1.setProviderItemId("id1");
         item1.setTitle("title1");
         itemRepository.save(item1);
         setUpIsDone = true;
@@ -56,7 +56,7 @@ public class ItemVerticleTest implements ApplicationContextAware {
 
     @Test
     public void getItemTest () {
-        log.info("item test rep: " +  itemRepository.findById("id"));
+        log.info("item test rep: " +  itemRepository.findById(new ItemId("id", "ebay")));
         vertx.eventBus().request(ItemVerticle.GET_ITEM_VTX, "id", reply -> {
             if(reply.succeeded()) {
                 log.info("received: {}", reply.result().body());

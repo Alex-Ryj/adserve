@@ -9,29 +9,35 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Lob;
 import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.ToString;
 
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
+@ToString
 @Entity
 @Table(name="item")
-@ToString
+@IdClass(ItemId.class)
 public class Item {	
-	
 	@Id	
-	@NonNull
-	private String itemId;
-	@NonNull
+	@NotBlank(message = "providerItemId is mandatory")
+	private String providerItemId;
+	@Id	
+	@NotBlank(message = "providerName is mandatory")
+	private String providerName;
+	@NotBlank(message = "title is mandatory")
 	private String title;
-	@NonNull
+	@NotBlank(message = "viewItemURL is mandatory")
+	@Size(min = 15)
 	private String viewItemURL;
 	@Column
 	@ElementCollection(targetClass=String.class)
@@ -46,6 +52,5 @@ public class Item {
 	private String modifiedImage64BaseStr;
 	private int price;
 	private boolean process;	
-	private Date createdOn = new Date(), updatedOn = new Date();
-	
+	private Date createdOn = new Date(), updatedOn = new Date();	
 }

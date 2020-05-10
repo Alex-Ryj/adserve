@@ -26,9 +26,10 @@ public class ItemJsonConvert {
 				.asText();
 		String condition = jsonObj.get("condition").get(0).get("conditionDisplayName").get(0).asText();
 		Item item = new Item();
-		item.setItemId(itemId);
+		item.setProviderItemId(itemId);
+		item.setProviderName(Constants.EBAY);
 		item.setTitle(title);
-		item.setSource("ebay");
+		item.setSource(Constants.EBAY);
 		item.setTitle(title);
 		item.setPrice(price);
 		item.setCurrency(currency);

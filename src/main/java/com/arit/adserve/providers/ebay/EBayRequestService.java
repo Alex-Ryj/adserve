@@ -19,7 +19,9 @@ import com.arit.adserve.providers.IApiCall;
 /**
  * Service to manage eBay Finding API requests (5,000 API calls per day limit for starters)
  * GetMultipleItems allows 20 ItemIds in one call
- * the search can is done with key words list and paginated , every response can return up to 100 items
+ * the search can is done with key words list and paginated, every response can return up to 100 items
+ * the max number of items itemMaxRequired and how frequently the items need to be updated updatePeriodHours
+ * should be provided from the properties or other sources
  *
  */
 @Service
@@ -58,6 +60,7 @@ public class EBayRequestService implements IApiCall {
     private ItemService itemService;
 
     public String getFindRequestUrl() {
+    	eBayFindRequest.setItemsMaxRequired(itemMaxRequired);
     	eBayFindRequest.setItemsTotal(itemService.count());
     	LocalDateTime localDate = LocalDateTime.now().minusHours(updatePeriodHours);
 		Date date = java.util.Date.from(localDate

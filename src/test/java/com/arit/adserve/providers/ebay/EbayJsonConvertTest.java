@@ -1,32 +1,49 @@
 package com.arit.adserve.providers.ebay;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
+
+import java.nio.file.Files;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
 
+import io.vertx.core.json.JsonObject;
+
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {ItemJsonConvert.class})
 public class EbayJsonConvertTest {
-	
+
+	@Value("classpath:eBayFindItemsByKeywordsResponse.json")
+	Resource ebayRespFile;
+
 	@Autowired
 	ItemJsonConvert convert;
 
 	@Test
-	public void test() throws Exception {
+	public void testItemConvert() throws Exception {
      	Item item = convert.getEbayItem(strJsonItem);
-		assertEquals("303220686589", item.getItemId());	
+		assertEquals("303220686589", item.getProviderItemId());	
 		assertEquals("Drone X Pro Foldable Quadcopter WIFI FPV 720P Wide-Angle HD Camera 3 Batteries", item.getTitle());
 		assertEquals("https://thumbs2.ebaystatic.com/m/mV9DBtlnOOw9Eb5u8CNfgyA/140.jpg", item.getGaleryURL());
 		assertEquals(5839, item.getPrice());
 	}
 	
+	@Test
+	public void testEbayResponse() throws Exception {
+		String jsonStr = new String( Files.readAllBytes(ebayRespFile.getFile().toPath()));
+		System.out.println("resp: " + new String( Files.readAllBytes(ebayRespFile.getFile().toPath())));
+		JsonObject jsonObj = new JsonObject(jsonStr).getJsonObject("findItemsByKeywordsResponse").getJsonObject("paginationOutput");;
+		for(String name : jsonObj.fieldNames()) System.out.println(name);
+		System.out.println("totalPages: " + jsonObj.getString("totalPages"));
+	}
 	String strJsonItem = "{" + 
 			"	\"itemId\": [" + 
 			"		\"303220686589\"" + 
