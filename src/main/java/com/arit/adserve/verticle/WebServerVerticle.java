@@ -15,9 +15,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.Base64;
 
+/**
+ * @author Alex Ryjoukhine
+ * @since May 11, 2020
+ * 
+ */
 @Slf4j
 @Service
-public class ServerVerticle extends AbstractVerticle {
+public class WebServerVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {

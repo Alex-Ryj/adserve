@@ -15,14 +15,19 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+/**
+ * Testing Camel route related to eBay processing.
+ * Route nodes responsible for 'external' calls are dynamically replaced by mocks
+ * 
+ * @author Alex Ryjoukhine
+ * @since May 11, 2020
+ * 
+ */
 @RunWith(SpringRunner.class)
 @TestPropertySource(locations = "file:app.properties")
 @SpringBootTest
 public class EBayCamelTest {
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
+    
     @Autowired
     protected CamelContext camelContext;
 
@@ -36,7 +41,7 @@ public class EBayCamelTest {
     @Test
     public void vertxRouteTest() throws Exception {
 
-        camelContext.getRouteDefinition("route-vertx-ebay-req-bridge")
+        camelContext.getRouteDefinition(EbayApiVerticle.ROUTE_VTX_EBAY_REQ_BRIDGE)
                 .adviceWith(camelContext, new AdviceWithRouteBuilder() {
                     @Override
                     public void configure() throws Exception {
@@ -58,7 +63,7 @@ public class EBayCamelTest {
     @Test
     public void vertxGetImageTest() throws Exception {
 
-        camelContext.getRouteDefinition("route-get-file-http")
+        camelContext.getRouteDefinition(EbayApiVerticle.ROUTE_GET_FILE_HTTP)
                 .adviceWith(camelContext, new AdviceWithRouteBuilder() {
                     @Override
                     public void configure() throws Exception {

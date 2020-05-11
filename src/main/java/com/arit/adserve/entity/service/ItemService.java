@@ -50,7 +50,7 @@ public class ItemService {
 		return itemRepository.count();
 	}
 
-	public Long countItemsUodatedAfter(Date date) {
+	public Long countItemsUpdatedAfter(Date date) {
 		return itemRepository.countItemsUpdatedAfter(date);
 	}
 

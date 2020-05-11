@@ -17,7 +17,7 @@ import org.springframework.core.io.Resource;
 
 import com.arit.adserve.verticle.EbayApiVerticle;
 import com.arit.adserve.verticle.ItemVerticle;
-import com.arit.adserve.verticle.ServerVerticle;
+import com.arit.adserve.verticle.WebServerVerticle;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -43,7 +43,7 @@ public class App {
 
     public void deployVerticles() {
         DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
-        vertx.deployVerticle(applicationContext.getBean(ServerVerticle.class));
+        vertx.deployVerticle(applicationContext.getBean(WebServerVerticle.class));
         vertx.deployVerticle(applicationContext.getBean(EbayApiVerticle.class), optionsWorker);
         vertx.deployVerticle(applicationContext.getBean(ItemVerticle.class), optionsWorker);
     }

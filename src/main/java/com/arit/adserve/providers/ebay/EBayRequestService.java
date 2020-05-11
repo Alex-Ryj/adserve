@@ -1,7 +1,7 @@
 package com.arit.adserve.providers.ebay;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -15,14 +15,17 @@ import org.springframework.stereotype.Service;
 
 import com.arit.adserve.entity.service.ItemService;
 import com.arit.adserve.providers.IApiCall;
+import com.arit.adserve.rules.Evaluate;
 
 /**
- * Service to manage eBay Finding API requests (5,000 API calls per day limit for starters)
+ * Service to manage eBay Finding API requests (5,000 API calls per day limit for starters. See <a href="https://developer.ebay.com/support/api-call-limits">eBay call limits</a>)
  * GetMultipleItems allows 20 ItemIds in one call
- * the search can is done with key words list and paginated, every response can return up to 100 items
- * the max number of items itemMaxRequired and how frequently the items need to be updated updatePeriodHours
+ * the search can is done with key words list and paginated, every response can return up to 100 items per page
+ * the max number of items <b>itemMaxRequired</b> and how frequently the items need to be updated <b>updatePeriodHours</b>
  * should be provided from the properties or other sources
- *
+ * 
+ * @author Alex Ryjoukhine
+ * @since May 11, 2020
  */
 @Service
 public class EBayRequestService implements IApiCall {
@@ -45,9 +48,22 @@ public class EBayRequestService implements IApiCall {
     @Value("${ebay.items.max.required}")
     private long itemMaxRequired;
     
-    public static final String reqFinding = "https4://svcs.ebay.com/services/search/FindingService/v1?";
-    public static final String reqShopping = "http4://open.api.ebay.com/shopping?";
-    public static final String reqSOAP = "https4://api.ebay.com/wsapi";
+    /**
+     * eBay URL for Finding API
+     */
+    public static final String REQ_FINDING = "https4://svcs.ebay.com/services/search/FindingService/v1?";
+    /**
+     * eBay URL for shopping API
+     */
+    public static final String REQ_SHOPPING = "http4://open.api.ebay.com/shopping?";
+    /**
+     * eBay URL for soap API
+     */
+    public static final String REQ_SOAP = "https4://api.ebay.com/wsapi";
+    /**
+     * Agenda name in Drools for processing eBay finding request
+     */
+    public static final String RULES_EBAY_REQUEST_AGENDA = "ebayRequest";
 
     private Map<String, String> itemFilters;
 
@@ -58,18 +74,30 @@ public class EBayRequestService implements IApiCall {
     
     @Autowired
     private ItemService itemService;
+    
+    @Autowired
+    private Evaluate evaluate;
 
-    public String getFindRequestUrl() {
+    /**
+     * @return a 'next' page URL request 
+     * @throws UnsupportedEncodingException
+     */
+    public String getFindRequestUrl() throws UnsupportedEncodingException {
     	eBayFindRequest.setItemsMaxRequired(itemMaxRequired);
     	eBayFindRequest.setItemsTotal(itemService.count());
     	LocalDateTime localDate = LocalDateTime.now().minusHours(updatePeriodHours);
 		Date date = java.util.Date.from(localDate
 			      .atZone(ZoneId.systemDefault())
 			      .toInstant());
-    	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUodatedAfter(date));
-        return null;
+    	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUpdatedAfter(date));
+        return REQ_FINDING + getParamsFindByKeywords(eBayFindRequest);
     }
 
+    /**
+     * @param eBayFindRequest
+     * @return canonical query string for eBay find request
+     * @throws UnsupportedEncodingException
+     */
     public String getParamsFindByKeywords(EBayFindRequest eBayFindRequest) throws UnsupportedEncodingException {
         Map<String, String> params = new HashMap<>();
         params.put("keywords", eBayFindRequest.getSearchWords());
@@ -84,18 +112,38 @@ public class EBayRequestService implements IApiCall {
         params.put("OPERATION-NAME", "findItemsByKeywords");     
         return IApiCall.canonicalQueryString(params);
     }
+    
+    /**
+     * evaluates {@link EBayRequestService} in the rule engine to determine what is 
+     * the nest state of request
+     * @return {@link RequestState}
+     * @throws IOException
+     */
+    public RequestState getRequestState() throws IOException {
+    	evaluate.evaluate(eBayFindRequest, RULES_EBAY_REQUEST_AGENDA);
+    	return eBayFindRequest.getState();
+    }
 
+	
+	/**
+	 * to update {@link EBayFindRequest} from eBay response 
+	 * @param pageNumber 
+	 * @param itemsPerPage
+	 * @param itemsTotalInRequest
+	 * @param pagesTotal
+	 */
+	public void updateEbayFindRequest(long pageNumber, long itemsPerPage, long itemsTotalInRequest, long pagesTotal) {
+		eBayFindRequest.setPageNumber(pageNumber);
+		eBayFindRequest.setItemsPerPage(itemsPerPage);
+		eBayFindRequest.setItemsTotalInRequest(itemsTotalInRequest);
+		eBayFindRequest.setPagesTotal(pagesTotal);		
+	}
+	
 	public List<String> getSearchKeyWords() {
 		return searchKeyWords;
 	}
 
 	public void setSearchKeyWords(List<String> searchKeyWords) {
 		this.searchKeyWords = searchKeyWords;
-	}
-	
-	public void updateEbayFindRequest(int itemsPerPage, int itemsTotalInRequest, int pagesTotal) {
-		eBayFindRequest.setItemsPerPage(itemsPerPage);
-		eBayFindRequest.setItemsTotalInRequest(itemsTotalInRequest);
-		eBayFindRequest.setPagesTotal(pagesTotal);		
 	}
 }

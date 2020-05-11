@@ -8,9 +8,21 @@ import com.arit.adserve.entity.Item;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Converting {@link com.arit.adserve.entity.Item} Item from json responses of various providers
+ * 
+ * @author Alex Ryjoukhine
+ * @since May 11, 2020
+ * 
+ */
 @Service
 public class ItemJsonConvert {
 
+	/**
+	 * @param strJson (ebay response from find request. See <a href="https://developer.ebay.com/DevZone/finding/Concepts/FindingAPIGuide.html>Ebay finding API</a>)
+	 * @return Item
+	 * @throws IOException
+	 */
 	public Item getEbayItem(String strJson) throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode jsonObj = mapper.readTree(strJson);

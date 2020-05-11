@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Lob;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
@@ -20,6 +21,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Item entity from a provider e.g. eBay
+ * @author Alex Ryjoukhine
+ * @since May 11, 2020
+ * 
+ */
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -34,6 +41,8 @@ public class Item {
 	@Id	
 	@NotBlank(message = "providerName is mandatory")
 	private String providerName;
+	@Version
+	private Integer version;
 	@NotBlank(message = "title is mandatory")
 	private String title;
 	@NotBlank(message = "viewItemURL is mandatory")
@@ -51,6 +60,7 @@ public class Item {
 	@Basic(fetch = FetchType.LAZY)
 	private String modifiedImage64BaseStr;
 	private int price;
-	private boolean process;	
+	private boolean process;
+	private long rank;
 	private Date createdOn = new Date(), updatedOn = new Date();	
 }

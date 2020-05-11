@@ -1,5 +1,7 @@
 package com.arit.adserve.verticle;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Base64;
@@ -24,13 +26,41 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * a service to deal with eBay items: get, update, delete
+ * 
+ * @author Alex Ryjoukhine
+ * @since May 11, 2020
+ * 
+ */
 @Slf4j
 @Service
 public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
 
+    /**
+     * a request from vert.x to a camel route
+     */
     public static final String VTX_EBAY_REQUEST = "ebayReq";
+    /**
+     * a request from vert.x to a get an image from camel
+     */
     public static final String VTX_EBAY_GET_IMAGE_CAMEL = "ebayResImgCamel";
-    public static final String route_vertx_ebay_req_bridge = "route_vertx_ebay_req_bridge";
+    /**
+     * vert.x to camel route id
+     */
+    public static final String ROUTE_VTX_EBAY_REQ_BRIDGE = "route_vertx_ebay_req_bridge";
+    /**
+     * get eBay items via finding API
+     */
+    public static final String ROUTE_GET_EBAY_ITEMS = "route_get_ebay_items";
+    /**
+     * get item image
+     */
+    public static final String ROUTE_GET_EBAY_IMAGE = "route_get_ebay_image";
+    /**
+     * render file content
+     */
+    public static final String ROUTE_GET_FILE_HTTP = "route_get_file_http";
     @Autowired
     private CamelContext camelContext;
     @Autowired
@@ -56,19 +86,26 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
     private RouteBuilder configureRoutes() {
         return new RouteBuilder() {
             public void configure() throws Exception {
+            	
                 from("vertx:" + VTX_EBAY_REQUEST)
-                        .routeId("route_vertx_ebay_req_bridge")
+                        .routeId(ROUTE_VTX_EBAY_REQ_BRIDGE)
                         .to("direct:getItems")
                         .id("id_vertx_ebay_req_bridge_end");
 
-                from("direct:remoteEbayApi")
-                        .routeId("route_get_ebay_items")
+                from("direct:remoteEbayApiGetItems")
+                        .routeId(ROUTE_GET_EBAY_ITEMS)
                         .removeHeaders("CamelHttp*")
                         .to(eBayFindRequestService.getFindRequestUrl())
+                        .id("id_ebay_http_call")
                         .process(exchange -> {
                         	String jsonResp = (String) exchange.getIn().getBody();
-                        	
-
+                        	JsonObject jsonObj = new JsonObject(jsonResp).getJsonObject("findItemsByKeywordsResponse")
+                    				.getJsonObject("paginationOutput");		
+                    		long pagesTotal = Long.parseLong(jsonObj.getString("totalPages"));
+                    		long itemsTotalInRequest = Long.parseLong(jsonObj.getString("totalEntries"));
+                    		long pageNumber = Long.parseLong(jsonObj.getString("pageNumber"));
+                    		long itemsPerPage = Long.parseLong(jsonObj.getString("entriesPerPage"));  
+                    		eBayFindRequestService.updateEbayFindRequest(pageNumber, itemsPerPage, itemsTotalInRequest, pagesTotal);
                         })
                         .split().jsonpathWriteAsString("$.findItemsByKeywordsResponse[0].searchResult[0].item")
                         .bean(convert)
@@ -79,10 +116,13 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
                             itemService.save(item);
                         })
                         .to("direct:getImage");
+                
+                from("direct:remoteEbayApiUpdateItems")
+                .log("log:updateItems");
 
                 from("direct:getImage")
 //		.filter().simple("${body.process} == true")
-                		.routeId("route_get_ebay_image")
+                		.routeId(ROUTE_GET_EBAY_IMAGE)
                         .setHeader("Accept", simple("image/jpeg"))
                         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                         .process(exchange -> {
@@ -114,7 +154,7 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
                         .to("log:image");
 
               from("vertx:" + VTX_EBAY_GET_IMAGE_CAMEL)
-                        .routeId("route_get_file_http")
+                        .routeId(ROUTE_GET_FILE_HTTP)
                       .process(exchange -> {
                           File file = new File("C://Temp/img.png");
                           String fileStr = Base64.getEncoder().encodeToString(IOUtils.toByteArray(new FileInputStream(file)));

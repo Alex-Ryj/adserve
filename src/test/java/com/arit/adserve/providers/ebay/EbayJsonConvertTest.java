@@ -38,12 +38,15 @@ public class EbayJsonConvertTest {
 	
 	@Test
 	public void testEbayResponse() throws Exception {
-		String jsonStr = new String( Files.readAllBytes(ebayRespFile.getFile().toPath()));
-		System.out.println("resp: " + new String( Files.readAllBytes(ebayRespFile.getFile().toPath())));
-		JsonObject jsonObj = new JsonObject(jsonStr).getJsonObject("findItemsByKeywordsResponse").getJsonObject("paginationOutput");;
-		for(String name : jsonObj.fieldNames()) System.out.println(name);
-		System.out.println("totalPages: " + jsonObj.getString("totalPages"));
+		String jsonStr = new String(Files.readAllBytes(ebayRespFile.getFile().toPath()));
+		JsonObject jsonObj = new JsonObject(jsonStr).getJsonObject("findItemsByKeywordsResponse")
+				.getJsonObject("paginationOutput");		
+		assertEquals(Long.valueOf(433), Long.valueOf(jsonObj.getString("totalPages")));
+		assertEquals(Long.valueOf(866), Long.valueOf(jsonObj.getString("totalEntries")));
+		assertEquals(Long.valueOf(1), Long.valueOf(jsonObj.getString("pageNumber")));
+		assertEquals(Long.valueOf(2), Long.valueOf(jsonObj.getString("entriesPerPage")));		
 	}
+	
 	String strJsonItem = "{" + 
 			"	\"itemId\": [" + 
 			"		\"303220686589\"" + 

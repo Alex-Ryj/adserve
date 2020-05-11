@@ -1,5 +1,10 @@
 package com.arit.adserve.comm;
 
+/**
+ * @author Alex Ryjoukhine
+ * @since May 11, 2020
+ * 
+ */
 public enum ErrorCodes {
     NOT_FOUND( -1, "not found");
 

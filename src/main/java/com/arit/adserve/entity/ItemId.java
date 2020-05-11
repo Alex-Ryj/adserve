@@ -4,6 +4,13 @@ import java.io.Serializable;
 
 import lombok.EqualsAndHashCode;
 
+/**
+ * a composite primary key for {@link Item}
+ * 
+ * @author Alex Ryjoukhine
+ * @since May 11, 2020
+ * 
+ */
 @EqualsAndHashCode
 public class ItemId implements Serializable {
 
@@ -12,7 +19,7 @@ public class ItemId implements Serializable {
 	private String providerName;
 	
 	public ItemId() {
-		// TODO Auto-generated constructor stub
+		// ORM required
 	}
 	
 	public ItemId(String providerItemId, String providerName) {
