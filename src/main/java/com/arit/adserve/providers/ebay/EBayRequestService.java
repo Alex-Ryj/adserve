@@ -49,15 +49,15 @@ public class EBayRequestService implements IApiCall {
     private long itemMaxRequired;
     
     /**
-     * eBay URL for Finding API
+     * eBay URL (camel https4)  for Finding API
      */
     public static final String REQ_FINDING = "https4://svcs.ebay.com/services/search/FindingService/v1?";
     /**
-     * eBay URL for shopping API
+     * eBay URL (camel https4) for shopping API
      */
-    public static final String REQ_SHOPPING = "http4://open.api.ebay.com/shopping?";
+    public static final String REQ_SHOPPING = "https4://open.api.ebay.com/shopping?";
     /**
-     * eBay URL for soap API
+     * eBay URL (camel https4) for soap API 
      */
     public static final String REQ_SOAP = "https4://api.ebay.com/wsapi";
     /**
@@ -94,22 +94,45 @@ public class EBayRequestService implements IApiCall {
     }
 
     /**
-     * @param eBayFindRequest
+     * @param eBayFindRequest <a href="https://developer.ebay.com/DevZone/finding/Concepts/MakingACall.html">eBay GetMultipleItems</a>
      * @return canonical query string for eBay find request
      * @throws UnsupportedEncodingException
      */
     public String getParamsFindByKeywords(EBayFindRequest eBayFindRequest) throws UnsupportedEncodingException {
-        Map<String, String> params = new HashMap<>();
-        params.put("keywords", eBayFindRequest.getSearchWords());
-        params.put("paginationInput.entriesPerPage", eBayFindRequest.getItemsPerPage() + ""); 
-        params.put("paginationInput.pageNumber", eBayFindRequest.getPageNumber() + "");  
-        params.put("SECURITY-APPNAME", ebayAppId);
-        params.put("SERVICE-VERSION", "1.0.0");
-        params.put("GLOBAL-ID", ebayGlobalId);
+    	 Map<String, String> params = new HashMap<>();
+         params.put("keywords", eBayFindRequest.getSearchWords());
+         params.put("paginationInput.entriesPerPage", eBayFindRequest.getItemsPerPage() + ""); 
+         params.put("paginationInput.pageNumber", eBayFindRequest.getPageNumber() + "");  
+         params.put("SECURITY-APPNAME", ebayAppId);
+         params.put("SERVICE-VERSION", "1.0.0");
+         params.put("GLOBAL-ID", ebayGlobalId);
+         params.put("siteid", ebaySiteId);
+         params.put("RESPONSE-DATA-FORMAT", "JSON");
+         params.put("Content-Type", "text/xml;charset=utf-8");
+         params.put("OPERATION-NAME", "findItemsByKeywords");     
+         return IApiCall.canonicalQueryString(params);
+    }
+    
+    /**
+     * @param ebay Item Ids list  <a href="https://developer.ebay.com/devzone/shopping/docs/CallRef/GetMultipleItems.html#Samples">eBay GetMultipleItems</a>
+     * @param ebayItemIds
+     * @return canonical query string for eBay find items request
+     * @throws UnsupportedEncodingException
+     */
+    public String getParamsFindItems(List<String> ebayItemIds) throws UnsupportedEncodingException {
+        if(ebayItemIds.isEmpty() ) throw new IllegalArgumentException("no item ids");
+    	Map<String, String> params = new HashMap<>();
+        params.put("callname", "GetMultipleItems");
+        params.put("responseencoding", "JSON"); 
+        params.put("appid", ebayAppId);
+        params.put("version", "967");
         params.put("siteid", ebaySiteId);
-        params.put("RESPONSE-DATA-FORMAT", "JSON");
-        params.put("Content-Type", "text/xml;charset=utf-8");
-        params.put("OPERATION-NAME", "findItemsByKeywords");     
+        StringBuilder sb = new StringBuilder();
+        for (String itemId : ebayItemIds) {
+			sb.append(itemId + ",");
+		}
+        sb.setLength(sb.length() - 1);
+        params.put("ItemID", sb.toString()); 
         return IApiCall.canonicalQueryString(params);
     }
     

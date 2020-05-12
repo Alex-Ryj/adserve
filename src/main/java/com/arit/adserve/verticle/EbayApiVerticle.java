@@ -1,25 +1,27 @@
 package com.arit.adserve.verticle;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.arit.adserve.comm.Constants;
 import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
 import com.arit.adserve.entity.service.ItemService;
 import com.arit.adserve.providers.IApiCall;
 import com.arit.adserve.providers.ebay.EBayRequestService;
+import com.arit.adserve.providers.ebay.RequestState;
 import com.arit.adserve.rules.Evaluate;
 
 import io.vertx.core.AbstractVerticle;
@@ -54,13 +56,20 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
      */
     public static final String ROUTE_GET_EBAY_ITEMS = "route_get_ebay_items";
     /**
+     * initial route for choosing if items need to be retrieved or updated
+     */
+    public static final String ROUTE_PROCESS_EBAY_ITEMS = "route_process_ebay_items";
+    /**
      * get item image
      */
     public static final String ROUTE_GET_EBAY_IMAGE = "route_get_ebay_image";
     /**
      * render file content
      */
-    public static final String ROUTE_GET_FILE_HTTP = "route_get_file_http";
+    public static final String ROUTE_GET_FILE_HTTP = "route_get_file_http";    
+    
+    private static final AtomicBoolean readyToProcess = new AtomicBoolean(true);
+    
     @Autowired
     private CamelContext camelContext;
     @Autowired
@@ -80,17 +89,41 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
 //            message.reply("ok from ebay");
 //        });
         camelContext.addRoutes(configureRoutes());
-        camelContext.start();
+    }
+    
+    public static boolean readyToProcess() {
+        boolean readyToProcess = EbayApiVerticle.readyToProcess.get();
+        if (readyToProcess) {
+        	EbayApiVerticle.readyToProcess.set(false);
+        }
+        return readyToProcess;
     }
 
     private RouteBuilder configureRoutes() {
         return new RouteBuilder() {
             public void configure() throws Exception {
             	
+            	String requestState = "requestState";            	
+            	
                 from("vertx:" + VTX_EBAY_REQUEST)
                         .routeId(ROUTE_VTX_EBAY_REQ_BRIDGE)
                         .to("direct:getItems")
                         .id("id_vertx_ebay_req_bridge_end");
+                
+                from("direct:processItems")
+                .routeId(ROUTE_PROCESS_EBAY_ITEMS)
+                .filter(method(EbayApiVerticle.class, "readyToProcess"))
+                .throttle(1).timePeriodMillis(10000)  //allow only one message every 10 sec
+                .process(exchange -> 
+                	exchange.getIn().setHeader(requestState, eBayFindRequestService.getRequestState().toString())                )
+                .choice()
+		            .when(header(requestState).isEqualTo(RequestState.RETRIEVE_ITEMS.toString()))
+		            .to("direct:remoteEbayApiGetItems")
+	                .when(header(requestState).isEqualTo(RequestState.UPDATE_ITEMS.toString()))
+	                .to("direct:remoteEbayApiUpdateItems")
+                .otherwise()
+                .log(LoggingLevel.INFO, "no item processing this time");
+                
 
                 from("direct:remoteEbayApiGetItems")
                         .routeId(ROUTE_GET_EBAY_ITEMS)
@@ -115,13 +148,20 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
                             log.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());
                             itemService.save(item);
                         })
+                        .process(exchange -> readyToProcess.set(true))
                         .to("direct:getImage");
                 
                 from("direct:remoteEbayApiUpdateItems")
+                .process(exchange -> readyToProcess.set(true))
                 .log("log:updateItems");
 
                 from("direct:getImage")
-//		.filter().simple("${body.process} == true")
+                .process(exchange -> {
+                	Item item = exchange.getIn().getBody(Item.class);
+                	exchange.getIn().setHeader("hasImage", itemService.hasImage(new ItemId(item.getProviderItemId(), Constants.EBAY)));
+                	
+                })
+ 		       .filter().simple("${header.hasImage} == false")
                 		.routeId(ROUTE_GET_EBAY_IMAGE)
                         .setHeader("Accept", simple("image/jpeg"))
                         .setHeader(Exchange.HTTP_METHOD, constant("GET"))

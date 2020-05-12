@@ -13,6 +13,13 @@ import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
 import com.arit.adserve.entity.repository.ItemRepository;
 
+/**
+ * {@link Item} persistence service
+ * 
+ * @author Alex Ryjoukhine
+ * @since May 12, 2020
+ * 
+ */
 @Service
 public class ItemService {
 
@@ -56,6 +63,10 @@ public class ItemService {
 
 	public boolean existsById(ItemId id) {
 		return itemRepository.existsById(id);
+	}
+	
+	public boolean hasImage(ItemId id) {		
+		return StringUtils.isNotEmpty(findById(id).getImage64BaseStr());
 	}
 
 }

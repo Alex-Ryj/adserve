@@ -43,6 +43,7 @@ public class Item {
 	private String providerName;
 	@Version
 	private Integer version;
+	private Integer relevance;
 	@NotBlank(message = "title is mandatory")
 	private String title;
 	@NotBlank(message = "viewItemURL is mandatory")
