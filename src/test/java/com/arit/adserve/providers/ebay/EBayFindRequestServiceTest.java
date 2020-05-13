@@ -9,9 +9,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @author Alex Ryjoukhine
+ * @since May 13, 2020
+ * 
+ */
 @Slf4j
 @RunWith(SpringRunner.class)
-@TestPropertySource(locations = "file:app.properties")
+@TestPropertySource(locations = {"file:app.properties", "classpath:persistence-test.yml"})
 @SpringBootTest
 public class EBayFindRequestServiceTest {
 	
@@ -19,11 +24,9 @@ public class EBayFindRequestServiceTest {
 	EBayRequestService service;
 	
 	@Test
-	public void testGetListProps() throws Exception {
-		
-		for (String search: service.getSearchKeyWords()) {
-			log.info(search);			
-		}
+	public void testGetListProps() throws Exception {		
+		int i = 0;
+		    service.setNextKeyWords();
 		
 	}
 }

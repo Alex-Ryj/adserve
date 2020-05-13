@@ -4,9 +4,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import com.arit.adserve.providers.ebay.EBayRequestService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.TreeMap;
 
-public interface IApiCall {
+
+public class ApiUtils {
 
 	
 	public static String canonicalQueryString(Map<String, String> params) throws UnsupportedEncodingException {

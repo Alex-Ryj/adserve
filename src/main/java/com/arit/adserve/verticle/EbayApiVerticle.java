@@ -19,7 +19,7 @@ import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
 import com.arit.adserve.entity.service.ItemService;
-import com.arit.adserve.providers.IApiCall;
+import com.arit.adserve.providers.ApiUtils;
 import com.arit.adserve.providers.ebay.EBayRequestService;
 import com.arit.adserve.providers.ebay.RequestState;
 import com.arit.adserve.rules.Evaluate;
@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
+public class EbayApiVerticle extends AbstractVerticle {
 
     /**
      * a request from vert.x to a camel route
@@ -79,7 +79,7 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
     @Autowired
     private ItemService itemService;
     @Autowired
-    private EBayRequestService eBayFindRequestService;
+    private EBayRequestService eBayRequestService;
 
     @Override
     public void start() throws Exception {
@@ -115,20 +115,23 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
                 .filter(method(EbayApiVerticle.class, "readyToProcess"))
                 .throttle(1).timePeriodMillis(10000)  //allow only one message every 10 sec
                 .process(exchange -> 
-                	exchange.getIn().setHeader(requestState, eBayFindRequestService.getRequestState().toString())                )
-                .choice()
-		            .when(header(requestState).isEqualTo(RequestState.RETRIEVE_ITEMS.toString()))
-		            .to("direct:remoteEbayApiGetItems")
-	                .when(header(requestState).isEqualTo(RequestState.UPDATE_ITEMS.toString()))
-	                .to("direct:remoteEbayApiUpdateItems")
-                .otherwise()
-                .log(LoggingLevel.INFO, "no item processing this time");
-                
+                	exchange.getIn().setHeader(requestState, eBayRequestService.updateRequestState().toString())                )
+						.choice().when(header(requestState).isEqualTo(RequestState.RETRIEVE_ITEMS.toString()))
+						.to("direct:remoteEbayApiGetItems")
+						.when(header(requestState).isEqualTo(RequestState.UPDATE_ITEMS.toString()))
+						.to("direct:remoteEbayApiUpdateItems")
+						.when(header(requestState).isEqualTo(RequestState.CHANGE_SEARCH.toString()))
+						.process(exchange -> {
+							eBayRequestService.setNextKeyWords();
+							eBayRequestService.updateRequestState(); //this should update the state to RETRIEVE_ITEMS
+						})
+						.to("direct:remoteEbayApiGetItems").otherwise()
+						.log(LoggingLevel.INFO, "no item processing this time");
 
                 from("direct:remoteEbayApiGetItems")
                         .routeId(ROUTE_GET_EBAY_ITEMS)
                         .removeHeaders("CamelHttp*")
-                        .to(eBayFindRequestService.getFindRequestUrl())
+                        .toD(eBayRequestService.getFindRequestUrl())
                         .id("id_ebay_http_call")
                         .process(exchange -> {
                         	String jsonResp = (String) exchange.getIn().getBody();
@@ -138,7 +141,7 @@ public class EbayApiVerticle extends AbstractVerticle implements IApiCall {
                     		long itemsTotalInRequest = Long.parseLong(jsonObj.getString("totalEntries"));
                     		long pageNumber = Long.parseLong(jsonObj.getString("pageNumber"));
                     		long itemsPerPage = Long.parseLong(jsonObj.getString("entriesPerPage"));  
-                    		eBayFindRequestService.updateEbayFindRequest(pageNumber, itemsPerPage, itemsTotalInRequest, pagesTotal);
+                    		eBayRequestService.updateEbayFindRequest(pageNumber, itemsPerPage, itemsTotalInRequest, pagesTotal);
                         })
                         .split().jsonpathWriteAsString("$.findItemsByKeywordsResponse[0].searchResult[0].item")
                         .bean(convert)

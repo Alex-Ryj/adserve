@@ -82,8 +82,5 @@ public class AppConfiguration {
 	        return ppc;
 	    }
 
-	    @Bean public ConversionService conversionService() {
-	        return new DefaultConversionService();
-	    }
 	  
 }

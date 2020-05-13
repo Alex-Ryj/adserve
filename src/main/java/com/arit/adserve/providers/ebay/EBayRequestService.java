@@ -6,16 +6,20 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.arit.adserve.entity.service.ItemService;
-import com.arit.adserve.providers.IApiCall;
+import com.arit.adserve.providers.ApiUtils;
 import com.arit.adserve.rules.Evaluate;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service to manage eBay Finding API requests (5,000 API calls per day limit for starters. See <a href="https://developer.ebay.com/support/api-call-limits">eBay call limits</a>)
@@ -27,8 +31,9 @@ import com.arit.adserve.rules.Evaluate;
  * @author Alex Ryjoukhine
  * @since May 11, 2020
  */
+@Slf4j
 @Service
-public class EBayRequestService implements IApiCall {
+public class EBayRequestService {
 
     @Value("${EBAY_APP_ID}")
     private String ebayAppId;
@@ -40,7 +45,12 @@ public class EBayRequestService implements IApiCall {
     private String ebaySiteId;
 
     @Value("${ebay.search.keywords.list}")
-    private List<String> searchKeyWords;
+    private LinkedList<String> searchKeyWords;
+    
+    private AtomicInteger keywordIndex = new AtomicInteger(0);
+    
+    @Value("${ebay.search.items.per.page}")
+    private long itemsPerPage;
     
     @Value("${ebay.update.period.hours}")
     private long updatePeriodHours;
@@ -63,12 +73,7 @@ public class EBayRequestService implements IApiCall {
     /**
      * Agenda name in Drools for processing eBay finding request
      */
-    public static final String RULES_EBAY_REQUEST_AGENDA = "ebayRequest";
-
-    private Map<String, String> itemFilters;
-
-    private Map<String, String> aspectFilters;
-    
+    public static final String RULES_EBAY_REQUEST_AGENDA = "ebayRequest";  
 
     private static final EBayFindRequest eBayFindRequest = new EBayFindRequest();
     
@@ -83,13 +88,14 @@ public class EBayRequestService implements IApiCall {
      * @throws UnsupportedEncodingException
      */
     public String getFindRequestUrl() throws UnsupportedEncodingException {
+    	eBayFindRequest.setItemsPerPage(itemsPerPage);
     	eBayFindRequest.setItemsMaxRequired(itemMaxRequired);
     	eBayFindRequest.setItemsTotal(itemService.count());
     	LocalDateTime localDate = LocalDateTime.now().minusHours(updatePeriodHours);
 		Date date = java.util.Date.from(localDate
 			      .atZone(ZoneId.systemDefault())
 			      .toInstant());
-    	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUpdatedAfter(date));
+    	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUpdatedAfter(date));    	
         return REQ_FINDING + getParamsFindByKeywords(eBayFindRequest);
     }
 
@@ -100,6 +106,7 @@ public class EBayRequestService implements IApiCall {
      */
     public String getParamsFindByKeywords(EBayFindRequest eBayFindRequest) throws UnsupportedEncodingException {
     	 Map<String, String> params = new HashMap<>();
+    	 if (eBayFindRequest.getSearchWords() == null) { setNextKeyWords(); }
          params.put("keywords", eBayFindRequest.getSearchWords());
          params.put("paginationInput.entriesPerPage", eBayFindRequest.getItemsPerPage() + ""); 
          params.put("paginationInput.pageNumber", eBayFindRequest.getPageNumber() + "");  
@@ -109,8 +116,11 @@ public class EBayRequestService implements IApiCall {
          params.put("siteid", ebaySiteId);
          params.put("RESPONSE-DATA-FORMAT", "JSON");
          params.put("Content-Type", "text/xml;charset=utf-8");
-         params.put("OPERATION-NAME", "findItemsByKeywords");     
-         return IApiCall.canonicalQueryString(params);
+         params.put("OPERATION-NAME", "findItemsByKeywords");  
+         log.info("params: " + params);
+                  
+         log.info( REQ_SHOPPING + ApiUtils.canonicalQueryString(params));
+         return REQ_SHOPPING + ApiUtils.canonicalQueryString(params);
     }
     
     /**
@@ -119,7 +129,7 @@ public class EBayRequestService implements IApiCall {
      * @return canonical query string for eBay find items request
      * @throws UnsupportedEncodingException
      */
-    public String getParamsFindItems(List<String> ebayItemIds) throws UnsupportedEncodingException {
+    public String getFindItemsUrl(List<String> ebayItemIds) throws UnsupportedEncodingException {
         if(ebayItemIds.isEmpty() ) throw new IllegalArgumentException("no item ids");
     	Map<String, String> params = new HashMap<>();
         params.put("callname", "GetMultipleItems");
@@ -133,16 +143,16 @@ public class EBayRequestService implements IApiCall {
 		}
         sb.setLength(sb.length() - 1);
         params.put("ItemID", sb.toString()); 
-        return IApiCall.canonicalQueryString(params);
+        return ApiUtils.canonicalQueryString(params);
     }
     
     /**
      * evaluates {@link EBayRequestService} in the rule engine to determine what is 
-     * the nest state of request
+     * the nest state of request. 
      * @return {@link RequestState}
      * @throws IOException
      */
-    public RequestState getRequestState() throws IOException {
+    public RequestState updateRequestState() throws IOException {
     	evaluate.evaluate(eBayFindRequest, RULES_EBAY_REQUEST_AGENDA);
     	return eBayFindRequest.getState();
     }
@@ -162,11 +172,14 @@ public class EBayRequestService implements IApiCall {
 		eBayFindRequest.setPagesTotal(pagesTotal);		
 	}
 	
-	public List<String> getSearchKeyWords() {
-		return searchKeyWords;
-	}
-
-	public void setSearchKeyWords(List<String> searchKeyWords) {
-		this.searchKeyWords = searchKeyWords;
+	/**
+	 * set the next element of searchKeyWords or first if there is no more elements 
+	 * in eBayFindRequest
+	 */
+	public void setNextKeyWords() {
+		if (keywordIndex.get() > searchKeyWords.size() - 1) {
+			keywordIndex.set(0);			
+			}		
+		eBayFindRequest.setSearchWords(searchKeyWords.get(keywordIndex.getAndIncrement()));		
 	}
 }

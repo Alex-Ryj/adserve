@@ -62,6 +62,6 @@ public class Item {
 	private String modifiedImage64BaseStr;
 	private int price;
 	private boolean process;
-	private long rank;
+	private int rank;
 	private Date createdOn = new Date(), updatedOn = new Date();	
 }
