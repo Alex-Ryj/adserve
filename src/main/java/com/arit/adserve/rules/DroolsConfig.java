@@ -21,6 +21,11 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import lombok.extern.slf4j.Slf4j;
 
 
+/**
+ * @author Alex Ryjoukhine
+ * @since May 15, 2020
+ * 
+ */
 @Slf4j
 @Configuration
 public class DroolsConfig {

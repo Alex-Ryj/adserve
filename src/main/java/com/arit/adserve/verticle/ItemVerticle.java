@@ -18,6 +18,11 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @author Alex Ryjoukhine
+ * @since May 15, 2020
+ * 
+ */
 @Slf4j
 @Service
 public class ItemVerticle extends AbstractVerticle {

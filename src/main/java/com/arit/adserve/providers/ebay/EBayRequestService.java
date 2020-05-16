@@ -2,8 +2,10 @@ package com.arit.adserve.providers.ebay;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,9 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.arit.adserve.comm.Constants;
+import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.service.ItemService;
 import com.arit.adserve.providers.ApiUtils;
 import com.arit.adserve.rules.Evaluate;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -95,8 +101,10 @@ public class EBayRequestService {
 		Date date = java.util.Date.from(localDate
 			      .atZone(ZoneId.systemDefault())
 			      .toInstant());
-    	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUpdatedAfter(date));    	
-        return REQ_FINDING + getParamsFindByKeywords(eBayFindRequest);
+    	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUpdatedAfter(date, Constants.EBAY)); 
+    	var result = REQ_FINDING + getParamsFindByKeywords(eBayFindRequest);
+    	log.info(result);
+        return result;
     }
 
     /**
@@ -119,8 +127,8 @@ public class EBayRequestService {
          params.put("OPERATION-NAME", "findItemsByKeywords");  
          log.info("params: " + params);
                   
-         log.info( REQ_SHOPPING + ApiUtils.canonicalQueryString(params));
-         return REQ_SHOPPING + ApiUtils.canonicalQueryString(params);
+         log.info(ApiUtils.canonicalQueryString(params));
+         return ApiUtils.canonicalQueryString(params);
     }
     
     /**
@@ -171,7 +179,7 @@ public class EBayRequestService {
 		eBayFindRequest.setItemsTotalInRequest(itemsTotalInRequest);
 		eBayFindRequest.setPagesTotal(pagesTotal);		
 	}
-	
+		
 	/**
 	 * set the next element of searchKeyWords or first if there is no more elements 
 	 * in eBayFindRequest
@@ -181,5 +189,14 @@ public class EBayRequestService {
 			keywordIndex.set(0);			
 			}		
 		eBayFindRequest.setSearchWords(searchKeyWords.get(keywordIndex.getAndIncrement()));		
+	}	
+	
+	/**
+	 * @return the date after whci items need to be updated
+	 */
+	public Date getDateLimitForItems() {
+		LocalDateTime date = LocalDateTime.now().minusHours(updatePeriodHours);
+		return java.util.Date.from(date.atZone(ZoneId.systemDefault()).toInstant());		
 	}
+
 }

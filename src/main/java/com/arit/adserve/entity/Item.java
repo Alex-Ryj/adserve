@@ -61,7 +61,7 @@ public class Item {
 	@Basic(fetch = FetchType.LAZY)
 	private String modifiedImage64BaseStr;
 	private int price;
-	private boolean process;
+	private boolean process, deleted;
 	private int rank;
 	private Date createdOn = new Date(), updatedOn = new Date();	
 }

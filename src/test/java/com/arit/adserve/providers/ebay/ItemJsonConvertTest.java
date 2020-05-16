@@ -3,6 +3,8 @@ package com.arit.adserve.providers.ebay;
 import static org.junit.Assert.*;
 
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,18 +14,24 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.arit.adserve.comm.Constants;
 import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.vertx.core.json.JsonObject;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {ItemJsonConvert.class})
-public class EbayJsonConvertTest {
+public class ItemJsonConvertTest {
 
-	@Value("classpath:eBayFindItemsByKeywordsResponse.json")
+	@Value("classpath:eBay/eBayFindItemsByKeywordsResponse.json")
 	Resource ebayRespFile;
 
+	@Value("classpath:eBay/eBayGetMultipleItemsResponse.json")
+	Resource ebayGetMultipleItemsRespFile;
+	
 	@Autowired
 	ItemJsonConvert convert;
 
@@ -37,14 +45,34 @@ public class EbayJsonConvertTest {
 	}
 	
 	@Test
-	public void testEbayResponse() throws Exception {
-		String jsonStr = new String(Files.readAllBytes(ebayRespFile.getFile().toPath()));
-		JsonObject jsonObj = new JsonObject(jsonStr).getJsonObject("findItemsByKeywordsResponse")
-				.getJsonObject("paginationOutput");		
-		assertEquals(Long.valueOf(433), Long.valueOf(jsonObj.getString("totalPages")));
-		assertEquals(Long.valueOf(866), Long.valueOf(jsonObj.getString("totalEntries")));
-		assertEquals(Long.valueOf(1), Long.valueOf(jsonObj.getString("pageNumber")));
-		assertEquals(Long.valueOf(2), Long.valueOf(jsonObj.getString("entriesPerPage")));		
+	public void testEbayFindResponse() throws Exception {
+		String jsonResp = new String(Files.readAllBytes(ebayRespFile.getFile().toPath()));
+		JsonNode jsonObj = new ObjectMapper().readTree(jsonResp).get("findItemsByKeywordsResponse").get(0).get("paginationOutput").get(0);		
+		assertEquals(Long.valueOf(100), Long.valueOf(jsonObj.get("totalPages").get(0).asText()));
+		assertEquals(Long.valueOf(1000), Long.valueOf(jsonObj.get("totalEntries").get(0).asText()));
+		assertEquals(Long.valueOf(1), Long.valueOf(jsonObj.get("pageNumber").get(0).asText()));
+		assertEquals(Long.valueOf(3), Long.valueOf(jsonObj.get("entriesPerPage").get(0).asText()));		
+	}
+	
+	@Test
+	public void testName() throws Exception {
+		
+	}
+	
+	@Test
+	public void testEbayGetMultipleResponse() throws Exception {
+		String jsonStr = new String(Files.readAllBytes(ebayGetMultipleItemsRespFile.getFile().toPath()));
+		Item item1 = new Item();
+		item1.setProviderItemId("313073812382");
+		item1.setProviderName(Constants.EBAY);
+		Item item2 = new Item();
+		item2.setProviderItemId("1");
+		item2.setProviderName(Constants.EBAY);
+		List<Item> items = new ArrayList<>();
+		items.add(item1);
+		items.add(item2);
+		var updatedItems = convert.updateEbayItems(jsonStr, items);
+		assertEquals(1, updatedItems.size());
 	}
 	
 	String strJsonItem = "{" + 

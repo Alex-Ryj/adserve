@@ -7,12 +7,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.arit.adserve.comm.Constants;
 import com.arit.adserve.entity.Item;
 
+/**
+ * @author Alex Ryjoukhine
+ * @since May 15, 2020
+ * 
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@PropertySource("persistence-test.yml")
 public class ItemRepositoryTest {
 	
 	@Autowired
@@ -21,7 +29,10 @@ public class ItemRepositoryTest {
 	@Test
 	public void testFindItemById() {
 		Item item = new Item();
-		item.setProviderItemId("Id");
+		item.setProviderItemId("id");
+		item.setProviderName(Constants.EBAY);
+		item.setTitle("title");
+		item.setViewItemURL("viewItemURL");
 		itemRepository.save(item);
 //		assertNotNull(itemRepository.findById("Id").get());
 //		assertFalse(itemRepository.findById("notId").isPresent());

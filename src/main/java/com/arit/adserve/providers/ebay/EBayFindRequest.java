@@ -18,7 +18,7 @@ public class EBayFindRequest implements Serializable {
   
 	private static final long serialVersionUID = 1L;
 	
-    private long pageNumber;
+    private long pageNumber = 1l;
     private long pagesTotal;
     private long itemsPerPage;
     private long itemsTotalInRequest;

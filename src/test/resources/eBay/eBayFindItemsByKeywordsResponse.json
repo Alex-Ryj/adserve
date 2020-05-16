@@ -1,127 +1,477 @@
 {
-  "findItemsByKeywordsResponse": {
-    "xmlns:ms": "https://www.ebay.com/marketplace/services",
-    "xmlns": "https://www.ebay.com/marketplace/search/v1/services",
-    "ack": "Success",
-    "version": "1.12.0",
-    "timestamp": "2015-09-04T00:46:55.581Z",
-    "searchResult": {
-      "count": "2",
-      "item": [
-        {
-          "itemId": "140343270924",
-          "title": "NINTENDO WII GAME HARRY POTTER ORDER OF THE PHOENIX NEW",
-          "globalId": "EBAY-US",
-          "subtitle": "??FAST SECURE SHIPPING SEE OUR STORE 100,000+ GAMES??",
-          "primaryCategory": {
-            "categoryId": "139973",
-            "categoryName": "Games"
-          },
-          "galleryURL": "https://thumbs1.ebaystatic.com/pict/1403432709248080_1.jpg",
-          "viewItemURL": "https://cgi.ebay.com/NINTENDO-WII-GAME-HARRY-POTTER-ORDER-OF-THE-PHOENIX-NEW_W0QQitemZ140343270924QQcmdZViewItemQQptZVideo_Games_Games?hash=item20ad1c5e0c",
-          "productId": {
-            "type": "ReferenceID",
-            "#text": "56277256"
-          },
-          "paymentMethod": [
-            "PayPal",
-            "VisaMC",
-            "Discover"
-          ],
-          "autoPay": "false",
-          "postalCode": "42***",
-          "location": "Pembroke,KY,USA",
-          "country": "US",
-          "shippingInfo": {
-            "shippingServiceCost": {
-              "currencyId": "USD",
-              "#text": "0.0"
-            },
-            "shippingType": "Free",
-            "shipToLocations": "Worldwide"
-          },
-          "sellingStatus": {
-            "currentPrice": {
-              "currencyId": "USD",
-              "#text": "30.99"
-            },
-            "convertedCurrentPrice": {
-              "currencyId": "USD",
-              "#text": "30.99"
-            },
-            "bidCount": "0",
-            "sellingState": "Active",
-            "timeLeft": "P0DT5H35M49S"
-          },
-          "listingInfo": {
-            "bestOfferEnabled": "false",
-            "buyItNowAvailable": "true",
-            "buyItNowPrice": {
-              "currencyId": "USD",
-              "#text": "33.94"
-            },
-            "convertedBuyItNowPrice": {
-              "currencyId": "USD",
-              "#text": "33.94"
-            },
-            "startTime": "2015-09-01T06:22:44.000Z",
-            "endTime": "2015-09-04T06:22:44.000Z",
-            "listingType": "AuctionWithBIN",
-            "gift": "false"
-          }
-        },
-        {
-          "itemId": "230371938681",
-          "title": "Harry Potter and the Order of the Phoenix HD-DVD",
-          "globalId": "EBAY-US",
-          "primaryCategory": {
-            "categoryId": "617",
-            "categoryName": "DVD, HD DVD & Blu-ray"
-          },
-          "galleryURL": "https://thumbs1.ebaystatic.com/pict/2303719386818080_1.jpg",
-          "viewItemURL": "https://cgi.ebay.com/Harry-Potter-and-the-Order-of-the-Phoenix-HD-DVD_W0QQitemZ230371938681QQcmdZViewItemQQptZUS_DVD_HD_DVD_Blu_ray?hash=item35a33cd179",
-          "productId": {
-            "type": "ReferenceID",
-            "#text": "62929195"
-          },
-          "paymentMethod": "PayPal",
-          "autoPay": "false",
-          "postalCode": "21***",
-          "location": "Frederick,MD,USA",
-          "country": "US",
-          "shippingInfo": {
-            "shippingType": "Calculated",
-            "shipToLocations": "US"
-          },
-          "sellingStatus": {
-            "currentPrice": {
-              "currencyId": "USD",
-              "#text": "2.5"
-            },
-            "convertedCurrentPrice": {
-              "currencyId": "USD",
-              "#text": "2.5"
-            },
-            "bidCount": "8",
-            "sellingState": "Active",
-            "timeLeft": "P0DT0H1M28S"
-          },
-          "listingInfo": {
-            "bestOfferEnabled": "false",
-            "buyItNowAvailable": "false",
-            "startTime": "2015-08-28T00:48:23.000Z",
-            "endTime": "2015-09-04T00:48:23.000Z",
-            "listingType": "Auction",
-            "gift": "false"
-          }
-        }
-      ]
-    },
-    "paginationOutput": {
-      "totalPages": "433",
-      "totalEntries": "866",
-      "pageNumber": "1",
-      "entriesPerPage": "2"
-    }
-  }
+	"findItemsByKeywordsResponse": [
+		{
+			"ack": [
+				"Success"
+			],
+			"version": [
+				"1.13.0"
+			],
+			"timestamp": [
+				"2020-05-16T08:18:42.032Z"
+			],
+			"searchResult": [
+				{
+					"@count": "3",
+					"item": [
+						{
+							"itemId": [
+								"264713783843"
+							],
+							"title": [
+								"DJI Mavic Air 2 - Fly More Combo"
+							],
+							"globalId": [
+								"EBAY-US"
+							],
+							"subtitle": [
+								"Official DJI eBay store, Includes 1 Year DJI Warranty"
+							],
+							"primaryCategory": [
+								{
+									"categoryId": [
+										"179697"
+									],
+									"categoryName": [
+										"Camera Drones"
+									]
+								}
+							],
+							"galleryURL": [
+								"https:\/\/thumbs4.ebaystatic.com\/m\/mkJHdEVN8pnVMDkDEvura4w\/140.jpg"
+							],
+							"viewItemURL": [
+								"https:\/\/www.ebay.com\/itm\/DJI-Mavic-Air-2-Fly-More-Combo-\/264713783843"
+							],
+							"productId": [
+								{
+									"@type": "ReferenceID",
+									"__value__": "4037974125"
+								}
+							],
+							"paymentMethod": [
+								"PayPal"
+							],
+							"autoPay": [
+								"true"
+							],
+							"postalCode": [
+								"333**"
+							],
+							"location": [
+								"Fort Lauderdale,FL,USA"
+							],
+							"country": [
+								"US"
+							],
+							"shippingInfo": [
+								{
+									"shippingServiceCost": [
+										{
+											"@currencyId": "USD",
+											"__value__": "0.0"
+										}
+									],
+									"shippingType": [
+										"Free"
+									],
+									"shipToLocations": [
+										"Worldwide"
+									],
+									"expeditedShipping": [
+										"true"
+									],
+									"oneDayShippingAvailable": [
+										"false"
+									],
+									"handlingTime": [
+										"10"
+									]
+								}
+							],
+							"sellingStatus": [
+								{
+									"currentPrice": [
+										{
+											"@currencyId": "USD",
+											"__value__": "988.0"
+										}
+									],
+									"convertedCurrentPrice": [
+										{
+											"@currencyId": "USD",
+											"__value__": "988.0"
+										}
+									],
+									"sellingState": [
+										"Active"
+									],
+									"timeLeft": [
+										"P11DT17H40M3S"
+									]
+								}
+							],
+							"listingInfo": [
+								{
+									"bestOfferEnabled": [
+										"false"
+									],
+									"buyItNowAvailable": [
+										"false"
+									],
+									"startTime": [
+										"2020-04-28T01:58:45.000Z"
+									],
+									"endTime": [
+										"2020-05-28T01:58:45.000Z"
+									],
+									"listingType": [
+										"FixedPrice"
+									],
+									"gift": [
+										"false"
+									],
+									"watchCount": [
+										"630"
+									]
+								}
+							],
+							"returnsAccepted": [
+								"true"
+							],
+							"galleryPlusPictureURL": [
+								"https:\/\/galleryplus.ebayimg.com\/ws\/web\/264713783843_1_26_1.jpg"
+							],
+							"condition": [
+								{
+									"conditionId": [
+										"1000"
+									],
+									"conditionDisplayName": [
+										"New"
+									]
+								}
+							],
+							"isMultiVariationListing": [
+								"false"
+							],
+							"topRatedListing": [
+								"false"
+							]
+						},
+						{
+							"itemId": [
+								"264160062921"
+							],
+							"title": [
+								"DJI Mavic Air 4K Quadcopter Fly More Combo Arctic White (DJI Refurbished)"
+							],
+							"globalId": [
+								"EBAY-US"
+							],
+							"subtitle": [
+								"Official DJI eBay Store"
+							],
+							"primaryCategory": [
+								{
+									"categoryId": [
+										"179697"
+									],
+									"categoryName": [
+										"Camera Drones"
+									]
+								}
+							],
+							"galleryURL": [
+								"https:\/\/thumbs2.ebaystatic.com\/m\/mCvCq7J7_IFPbCG4Y_GlqEA\/140.jpg"
+							],
+							"viewItemURL": [
+								"https:\/\/www.ebay.com\/itm\/DJI-Mavic-Air-4K-Quadcopter-Fly-More-Combo-Arctic-White-DJI-Refurbished-\/264160062921"
+							],
+							"paymentMethod": [
+								"PayPal"
+							],
+							"autoPay": [
+								"true"
+							],
+							"postalCode": [
+								"333**"
+							],
+							"location": [
+								"Fort Lauderdale,FL,USA"
+							],
+							"country": [
+								"US"
+							],
+							"shippingInfo": [
+								{
+									"shippingServiceCost": [
+										{
+											"@currencyId": "USD",
+											"__value__": "0.0"
+										}
+									],
+									"shippingType": [
+										"Free"
+									],
+									"shipToLocations": [
+										"Worldwide"
+									],
+									"expeditedShipping": [
+										"true"
+									],
+									"oneDayShippingAvailable": [
+										"false"
+									],
+									"handlingTime": [
+										"1"
+									]
+								}
+							],
+							"sellingStatus": [
+								{
+									"currentPrice": [
+										{
+											"@currencyId": "USD",
+											"__value__": "599.0"
+										}
+									],
+									"convertedCurrentPrice": [
+										{
+											"@currencyId": "USD",
+											"__value__": "599.0"
+										}
+									],
+									"sellingState": [
+										"Active"
+									],
+									"timeLeft": [
+										"P7DT13H0M23S"
+									]
+								}
+							],
+							"listingInfo": [
+								{
+									"bestOfferEnabled": [
+										"false"
+									],
+									"buyItNowAvailable": [
+										"false"
+									],
+									"startTime": [
+										"2019-01-23T21:19:05.000Z"
+									],
+									"endTime": [
+										"2020-05-23T21:19:05.000Z"
+									],
+									"listingType": [
+										"FixedPrice"
+									],
+									"gift": [
+										"false"
+									],
+									"watchCount": [
+										"564"
+									]
+								}
+							],
+							"returnsAccepted": [
+								"true"
+							],
+							"galleryPlusPictureURL": [
+								"https:\/\/galleryplus.ebayimg.com\/ws\/web\/264160062921_1_145_1.jpg"
+							],
+							"condition": [
+								{
+									"conditionId": [
+										"2000"
+									],
+									"conditionDisplayName": [
+										"Manufacturer refurbished"
+									]
+								}
+							],
+							"isMultiVariationListing": [
+								"false"
+							],
+							"discountPriceInfo": [
+								{
+									"originalRetailPrice": [
+										{
+											"@currencyId": "USD",
+											"__value__": "1149.0"
+										}
+									],
+									"pricingTreatment": [
+										"STP"
+									],
+									"soldOnEbay": [
+										"false"
+									],
+									"soldOffEbay": [
+										"false"
+									]
+								}
+							],
+							"topRatedListing": [
+								"true"
+							]
+						},
+						{
+							"itemId": [
+								"333499677949"
+							],
+							"title": [
+								"DJI Mavic Mini Fly More Combo #CP.MA.00000123.01"
+							],
+							"globalId": [
+								"EBAY-US"
+							],
+							"primaryCategory": [
+								{
+									"categoryId": [
+										"179697"
+									],
+									"categoryName": [
+										"Camera Drones"
+									]
+								}
+							],
+							"galleryURL": [
+								"https:\/\/thumbs2.ebaystatic.com\/m\/m1LrkyzTXX3UO5Z_liMy8XA\/140.jpg"
+							],
+							"viewItemURL": [
+								"https:\/\/www.ebay.com\/itm\/DJI-Mavic-Mini-Fly-More-Combo-CP-MA-00000123-01-\/333499677949"
+							],
+							"paymentMethod": [
+								"PayPal"
+							],
+							"autoPay": [
+								"true"
+							],
+							"postalCode": [
+								"072**"
+							],
+							"location": [
+								"Elizabeth,NJ,USA"
+							],
+							"country": [
+								"US"
+							],
+							"shippingInfo": [
+								{
+									"shippingServiceCost": [
+										{
+											"@currencyId": "USD",
+											"__value__": "0.0"
+										}
+									],
+									"shippingType": [
+										"Free"
+									],
+									"shipToLocations": [
+										"Worldwide"
+									],
+									"expeditedShipping": [
+										"true"
+									],
+									"oneDayShippingAvailable": [
+										"true"
+									],
+									"handlingTime": [
+										"1"
+									]
+								}
+							],
+							"sellingStatus": [
+								{
+									"currentPrice": [
+										{
+											"@currencyId": "USD",
+											"__value__": "499.0"
+										}
+									],
+									"convertedCurrentPrice": [
+										{
+											"@currencyId": "USD",
+											"__value__": "499.0"
+										}
+									],
+									"sellingState": [
+										"Active"
+									],
+									"timeLeft": [
+										"P14DT4H23M18S"
+									]
+								}
+							],
+							"listingInfo": [
+								{
+									"bestOfferEnabled": [
+										"false"
+									],
+									"buyItNowAvailable": [
+										"false"
+									],
+									"startTime": [
+										"2020-01-30T12:42:00.000Z"
+									],
+									"endTime": [
+										"2020-05-30T12:42:00.000Z"
+									],
+									"listingType": [
+										"FixedPrice"
+									],
+									"gift": [
+										"false"
+									],
+									"watchCount": [
+										"263"
+									]
+								}
+							],
+							"returnsAccepted": [
+								"true"
+							],
+							"condition": [
+								{
+									"conditionId": [
+										"1000"
+									],
+									"conditionDisplayName": [
+										"New"
+									]
+								}
+							],
+							"isMultiVariationListing": [
+								"false"
+							],
+							"topRatedListing": [
+								"true"
+							]
+						}
+					]
+				}
+			],
+			"paginationOutput": [
+				{
+					"pageNumber": [
+						"1"
+					],
+					"entriesPerPage": [
+						"3"
+					],
+					"totalPages": [
+						"100"
+					],
+					"totalEntries": [
+						"1000"
+					]
+				}
+			],
+			"itemSearchURL": [
+				"https:\/\/www.ebay.com\/sch\/i.html?_nkw=dji&_ddo=1&_ipg=3&_pgn=1"
+			]
+		}
+	]
 }

@@ -57,8 +57,8 @@ public class ItemService {
 		return itemRepository.count();
 	}
 
-	public Long countItemsUpdatedAfter(Date date) {
-		return itemRepository.countItemsUpdatedAfter(date);
+	public Long countItemsUpdatedAfter(Date date, String providerName) {
+		return itemRepository.countItemsUpdatedAfter(date, providerName);
 	}
 
 	public boolean existsById(ItemId id) {
@@ -67,6 +67,10 @@ public class ItemService {
 	
 	public boolean hasImage(ItemId id) {		
 		return StringUtils.isNotEmpty(findById(id).getImage64BaseStr());
+	}
+	
+	public List<Item> getItemsFromProviderBefore(Date date, String providerName, int limit) {
+		return itemRepository.getItemsFromProviderUpdatedBefore(date, providerName, PageRequest.of(0, limit, Sort.by(Sort.Direction.ASC, "updatedOn")));
 	}
 
 }

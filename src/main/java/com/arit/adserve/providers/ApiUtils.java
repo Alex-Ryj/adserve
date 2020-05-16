@@ -12,9 +12,19 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.TreeMap;
 
 
+/**
+ * @author Alex Ryjoukhine
+ * @since May 15, 2020
+ * 
+ */
 public class ApiUtils {
 
 	
+	/**
+	 * @param params
+	 * @return sorted params by the natural order
+	 * @throws UnsupportedEncodingException
+	 */
 	public static String canonicalQueryString(Map<String, String> params) throws UnsupportedEncodingException {
         // params can be sorted in alphabetical order
 		Map<String, String> sortedMap = new TreeMap<>();

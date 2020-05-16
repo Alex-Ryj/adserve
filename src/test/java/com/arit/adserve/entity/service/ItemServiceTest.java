@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -79,17 +80,28 @@ public class ItemServiceTest {
     }
     
     @Test
-    public void testItemsUpdatedToday() {
-		long itemCount = itemRepository.countItemsUpdatedAfter(new Date());
+    public void testCountItemsUpdatedToday() {
+		long itemCount = itemRepository.countItemsUpdatedAfter(new Date(), Constants.EBAY);
 		log.debug("items: {}", itemCount);
 		Assert.assertEquals(0, itemCount);
 		LocalDate localDate = LocalDate.now().minusDays(1);
 		Date date = java.util.Date.from(localDate.atStartOfDay()
 			      .atZone(ZoneId.systemDefault())
 			      .toInstant());
-		itemCount = itemRepository.countItemsUpdatedAfter(date);
+		itemCount = itemRepository.countItemsUpdatedAfter(date, Constants.EBAY);
 		Assert.assertEquals(2, itemCount);
 		Assert.assertEquals(2, itemRepository.count());
 
+	}
+    
+    @Test
+    public void testGetItemsToUpdatToday() {
+		LocalDate localDate = LocalDate.now().plusDays(1);
+		Date date = java.util.Date.from(localDate.atStartOfDay()
+			      .atZone(ZoneId.systemDefault())
+			      .toInstant());
+		var items = itemRepository.getItemsFromProviderUpdatedBefore(date, Constants.EBAY, PageRequest.of(0, 2));
+		log.debug("items: {}", items.size());
+		Assert.assertEquals(2, items.size());
 	}
 }

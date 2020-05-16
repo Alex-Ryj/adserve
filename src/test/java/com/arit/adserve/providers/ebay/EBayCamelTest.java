@@ -1,6 +1,9 @@
 package com.arit.adserve.providers.ebay;
 
 import com.arit.adserve.verticle.EbayApiVerticle;
+
+import static org.junit.Assert.*;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
@@ -17,7 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 /**
  * Testing Camel route related to eBay processing.
- * Route nodes responsible for 'external' calls are dynamically replaced by mocks
+ * Route nodes responsible for 'external' calls can be dynamically replaced by mocks
  * 
  * @author Alex Ryjoukhine
  * @since May 11, 2020
@@ -30,29 +33,24 @@ public class EBayCamelTest {
     
     @Autowired
     protected CamelContext camelContext;
-
     @Autowired
-    private ProducerTemplate template;
-    
+    private ProducerTemplate template;    
     @Autowired
-    private EbayApiVerticle ebayApi;
- 
+    private EbayApiVerticle ebayApi; 
 
     @Test
     public void vertxRouteTest() throws Exception {
-
         camelContext.getRouteDefinition(EbayApiVerticle.ROUTE_VTX_EBAY_REQ_BRIDGE)
                 .adviceWith(camelContext, new AdviceWithRouteBuilder() {
                     @Override
                     public void configure() throws Exception {
                         replaceFromWith("direct:in");
                         // weaveById() replace camel step id identified by id()
-                        weaveById("id-vertx-ebay-req-bridge-end").replace().log("replacing call to another route");
+                        weaveById("id_vertx_ebay_req_bridge_end").replace().log("replacing call to another route");
                         // send the outgoing message to mock:out
                         weaveAddLast().to("mock:out");
                     }
                 });
-
         camelContext.start();
         MockEndpoint mockOut = camelContext.getEndpoint("mock:out", MockEndpoint.class);
         mockOut.expectedMessageCount(1);
@@ -62,7 +60,6 @@ public class EBayCamelTest {
 
     @Test
     public void vertxGetImageTest() throws Exception {
-
         camelContext.getRouteDefinition(EbayApiVerticle.ROUTE_GET_FILE_HTTP)
                 .adviceWith(camelContext, new AdviceWithRouteBuilder() {
                     @Override
@@ -78,6 +75,23 @@ public class EBayCamelTest {
         mockOut.expectedMessageCount(1);
         template.sendBody("direct:in1","test");
         mockOut.assertIsSatisfied();
-
     }
+    
+    @Test
+	public void testEbayApiGetItems() throws Exception {
+    	camelContext.getRouteDefinition(EbayApiVerticle.ROUTE_PROCESS_EBAY_ITEMS)
+    	.adviceWith(camelContext, new AdviceWithRouteBuilder() {
+            @Override
+            public void configure() throws Exception {                
+                // send the outgoing message to mock:out
+                weaveAddLast().to("mock:out2");
+            }
+        });
+        camelContext.start();
+        MockEndpoint mockOut = camelContext.getEndpoint("mock:out2", MockEndpoint.class);
+        mockOut.expectedMessageCount(1);
+        template.sendBody("direct:processItems","test");
+        mockOut.assertIsSatisfied();
+		
+	}
 }
