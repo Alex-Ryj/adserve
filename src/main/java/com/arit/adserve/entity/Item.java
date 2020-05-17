@@ -60,7 +60,7 @@ public class Item {
 	@Lob
 	@Basic(fetch = FetchType.LAZY)
 	private String modifiedImage64BaseStr;
-	private int price;
+	private float price;
 	private boolean process, deleted;
 	private int rank;
 	private Date createdOn = new Date(), updatedOn = new Date();	

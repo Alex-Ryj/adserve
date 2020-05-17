@@ -91,6 +91,7 @@ public class EBayCamelTest {
         MockEndpoint mockOut = camelContext.getEndpoint("mock:out2", MockEndpoint.class);
         mockOut.expectedMessageCount(1);
         template.sendBody("direct:processItems","test");
+        template.sendBody("direct:processItems","test");
         mockOut.assertIsSatisfied();
 		
 	}

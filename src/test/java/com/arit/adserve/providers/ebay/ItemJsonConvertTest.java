@@ -75,6 +75,15 @@ public class ItemJsonConvertTest {
 		assertEquals(1, updatedItems.size());
 	}
 	
+	@Test
+	public void testFormatPrice() throws Exception {
+		String[] prices = {"22.0", "22,12", "11,11,1", "22"};
+		for (String price : prices) {
+			if(price.matches(".*[\\.,]\\d$")) price +="0";
+			System.out.println(price);
+		}
+	}
+	
 	String strJsonItem = "{" + 
 			"	\"itemId\": [" + 
 			"		\"303220686589\"" + 

@@ -116,7 +116,8 @@ public class EbayApiVerticle extends AbstractVerticle {
             @SuppressWarnings("unchecked")
 			public void configure() throws Exception {
             	
-            	String requestState = "requestState";            	
+            	String requestState = "requestState";   
+            
             	
             	//root to initiate of eBay items processing via vert.x message
                 from("vertx:" + VTX_EBAY_REQUEST)
@@ -147,8 +148,11 @@ public class EbayApiVerticle extends AbstractVerticle {
                 //get ebay items processing
                 from("direct:remoteEbayApiGetItems")
                         .routeId(ROUTE_GET_EBAY_ITEMS)
-                        .removeHeaders("CamelHttp*")
-                        .toD(eBayRequestService.getFindRequestUrl())
+                        .process(exchange -> exchange.getIn().setHeader("requestUrl", eBayRequestService.getFindRequestUrl()))
+                        .log(LoggingLevel.DEBUG, "header.requestUrl + ${header.requestUrl}")
+                        .removeHeaders("CamelHttp*")                        
+                        .toD(eBayRequestService.getFindRequestUrl()) //simple("${header.requestUrl}").getText())
+                        .log(LoggingLevel.DEBUG, "header.requestUrl + ${header.requestUrl}")
                         .id("id_ebay_http_call")
                         .process(exchange -> {
                         	String jsonResp = MessageHelper.extractBodyAsString(exchange.getIn());

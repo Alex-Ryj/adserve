@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.arit.adserve.entity.Item;
@@ -36,9 +37,9 @@ public class ItemJsonConvert {
 		String galleryURL = jsonObj.get("galleryURL").get(0).asText();
 		String viewItemURL = jsonObj.get("viewItemURL").get(0).asText();
 		String priceFormatted = jsonObj.get("sellingStatus").get(0).get("currentPrice").get(0).get("__value__")
-				.asText();
-		int price = Integer.parseInt(jsonObj.get("sellingStatus").get(0).get("currentPrice").get(0).get("__value__")
-				.asText().replaceAll("[,\\.\\s+]", ""));
+				.asText();		
+		float price = Float.parseFloat(priceFormatted);		
+		if(priceFormatted.matches(".*[\\.,]\\d$")) priceFormatted +="0";  //make 2 decimals at the end
 		String currency = jsonObj.get("sellingStatus").get(0).get("currentPrice").get(0).get("@currencyId").asText();
 		String condition = jsonObj.get("condition").get(0).get("conditionDisplayName").get(0).asText();
 		Item item = new Item();

@@ -103,7 +103,7 @@ public class EBayRequestService {
 			      .toInstant());
     	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUpdatedAfter(date, Constants.EBAY)); 
     	var result = REQ_FINDING + getParamsFindByKeywords(eBayFindRequest);
-    	log.info(result);
+    	log.info("calling find request: " + result);
         return result;
     }
 
@@ -161,7 +161,9 @@ public class EBayRequestService {
      * @throws IOException
      */
     public RequestState updateRequestState() throws IOException {
+    	log.debug("find request before: {}", eBayFindRequest);
     	evaluate.evaluate(eBayFindRequest, RULES_EBAY_REQUEST_AGENDA);
+    	log.debug("find request after: {}", eBayFindRequest);
     	return eBayFindRequest.getState();
     }
 
