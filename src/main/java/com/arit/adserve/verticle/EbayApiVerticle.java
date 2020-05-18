@@ -1,9 +1,6 @@
 package com.arit.adserve.verticle;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.text.MessageFormat;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,8 +10,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.util.MessageHelper;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +18,6 @@ import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
 import com.arit.adserve.entity.service.ItemService;
-import com.arit.adserve.providers.ApiUtils;
 import com.arit.adserve.providers.ebay.EBayRequestService;
 import com.arit.adserve.providers.ebay.RequestState;
 import com.arit.adserve.rules.Evaluate;
@@ -148,14 +142,18 @@ public class EbayApiVerticle extends AbstractVerticle {
                 //get ebay items processing
                 from("direct:remoteEbayApiGetItems")
                         .routeId(ROUTE_GET_EBAY_ITEMS)
-                        .process(exchange -> exchange.getIn().setHeader("requestUrl", eBayRequestService.getFindRequestUrl()))
-                        .log(LoggingLevel.DEBUG, "header.requestUrl + ${header.requestUrl}")
-                        .removeHeaders("CamelHttp*")                        
-                        .toD(eBayRequestService.getFindRequestUrl()) //simple("${header.requestUrl}").getText())
-                        .log(LoggingLevel.DEBUG, "header.requestUrl + ${header.requestUrl}")
+                        .process(exchange -> {
+                        	String requestQuery = eBayRequestService.getFindRequestQuery();
+                        	log.info("requestQuery: {}", requestQuery);
+                        	exchange.getIn().setHeader("requestQuery", requestQuery);
+                        })
+                        .log(LoggingLevel.INFO, "header.requestQuery + ${header.requestQuery}")
+                        .removeHeaders("CamelHttp*") 
+//                        .setHeader(Exchange.HTTP_PATH, expression("/login"))
+                        .toD("https:svcs.ebay.com/services/search/FindingService/v1?${header.requestQuery}") //simple("${header.requestUrl}").getText())                        
                         .id("id_ebay_http_call")
                         .process(exchange -> {
-                        	String jsonResp = MessageHelper.extractBodyAsString(exchange.getIn());
+                        	String jsonResp = exchange.getIn().copy().getBody(String.class);
                         	log.info(jsonResp);
                         	JsonNode jsonObj = new ObjectMapper().readTree(jsonResp).get("findItemsByKeywordsResponse").get(0).get("paginationOutput").get(0);	
                     		long pagesTotal = Long.parseLong(jsonObj.get("totalPages").get(0).asText());

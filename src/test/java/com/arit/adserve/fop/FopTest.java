@@ -19,7 +19,7 @@ import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.arit.adserve.image.Utils;
 

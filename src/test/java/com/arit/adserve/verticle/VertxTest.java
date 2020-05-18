@@ -1,22 +1,26 @@
 package com.arit.adserve.verticle;
 
-import io.vertx.core.Vertx;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(VertxUnitRunner.class)
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+
+@ExtendWith(VertxExtension.class)
 public class VertxTest {
 
-    @Test /*(timeout=5000)*/
-    public void async_behavior(TestContext context) {
-        Vertx vertx = Vertx.vertx();
-        context.assertEquals("foo", "foo");
-        Async a1 = context.async();
-        Async a2 = context.async(3);
-        vertx.setTimer(100, n -> a1.complete());
-        vertx.setPeriodic(100, n -> a2.countDown());
-    }
+	@Test /* (timeout=5000) */
+	public void async_behavior(Vertx vertx, VertxTestContext testContext) throws Throwable {
+		vertx.createHttpServer().requestHandler(req -> req.response().end()).listen(16969, testContext.completing());
+
+		assertTrue((testContext.awaitCompletion(5, TimeUnit.SECONDS)) == true);
+		if (testContext.failed()) {
+			throw testContext.causeOfFailure();
+		}
+	}
 }

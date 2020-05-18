@@ -93,7 +93,7 @@ public class EBayRequestService {
      * @return a 'next' page URL request 
      * @throws UnsupportedEncodingException
      */
-    public String getFindRequestUrl() throws UnsupportedEncodingException {
+    public String getFindRequestQuery() throws UnsupportedEncodingException {
     	eBayFindRequest.setItemsPerPage(itemsPerPage);
     	eBayFindRequest.setItemsMaxRequired(itemMaxRequired);
     	eBayFindRequest.setItemsTotal(itemService.count());
@@ -102,7 +102,7 @@ public class EBayRequestService {
 			      .atZone(ZoneId.systemDefault())
 			      .toInstant());
     	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUpdatedAfter(date, Constants.EBAY)); 
-    	var result = REQ_FINDING + getParamsFindByKeywords(eBayFindRequest);
+    	var result = getParamsFindByKeywords(eBayFindRequest);
     	log.info("calling find request: " + result);
         return result;
     }

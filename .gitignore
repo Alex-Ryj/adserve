@@ -70,3 +70,5 @@ logs/
 .vscode/**
 **/*.scss
 **/*.sass
+/mvnw.cmd
+/mvnw

@@ -2,9 +2,8 @@ package com.arit.adserve.verticle;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +11,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.arit.adserve.comm.Constants;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
 import com.arit.adserve.entity.repository.ItemRepository;
@@ -25,7 +25,6 @@ import io.vertx.core.json.jackson.JacksonCodec;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class ItemVerticleTest implements ApplicationContextAware {
 
@@ -38,18 +37,22 @@ public class ItemVerticleTest implements ApplicationContextAware {
 
     private static boolean setUpIsDone = false;
 
-    @Before
+    @BeforeEach
     public void setUp () {
         if(setUpIsDone) return;
         DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(applicationContext.getBean(ItemVerticle.class), optionsWorker);
         Item item = new Item();
         item.setProviderItemId("id");
+        item.setProviderName(Constants.EBAY);
         item.setTitle("title");
+        item.setViewItemURL("viewItemURL");
         itemRepository.save(item);
         Item item1 = new Item();
         item1.setProviderItemId("id1");
+        item1.setProviderName(Constants.EBAY);
         item1.setTitle("title1");
+        item1.setViewItemURL("viewItemURL");
         itemRepository.save(item1);
         setUpIsDone = true;
     }

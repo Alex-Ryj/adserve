@@ -1,6 +1,6 @@
 package com.arit.adserve.image;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -18,8 +18,10 @@ import java.util.Hashtable;
 
 import javax.imageio.ImageIO;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
+@Disabled
 public class MultiLineTextTest {
 
 	public static void main(String[] args) {

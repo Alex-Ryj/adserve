@@ -1,13 +1,16 @@
 package com.arit.adserve.comm;
 
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.jupiter.api.Test;
+
 import com.arit.adserve.providers.ApiUtils;
-import org.junit.Test;
+
 
 
 public class AbstractApiCallTest {

@@ -14,8 +14,10 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
+@Disabled
 public class ImageIOTest {
 	
 	private static final Font FONT = new Font("Serif", Font.PLAIN, 14);
@@ -49,7 +51,7 @@ public class ImageIOTest {
         g2d.dispose();
  
         // Save as PNG
-        File file = new File("files/myimage.png");
+        File file = new File("img/myimage.png");
         ImageIO.write(bufferedImage, "png", file);
  
         // Save as JPEG
@@ -89,7 +91,7 @@ public class ImageIOTest {
         g2d.drawString("Java Code Geeks", 50, 120);
         
         
-        BufferedImage logo = ImageIO.read(new File("files/Panel1.PNG"));
+        BufferedImage logo = ImageIO.read(new File("img/Panel1.PNG"));
         g2d.drawImage(logo, 0, 0, null);
  
         // Disposes of this graphics context and releases any system resources that it is using. 

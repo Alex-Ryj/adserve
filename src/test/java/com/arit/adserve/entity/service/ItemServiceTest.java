@@ -1,5 +1,9 @@
 package com.arit.adserve.entity.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -8,10 +12,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +32,6 @@ import com.arit.adserve.entity.repository.ItemRepository;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @PropertySource("persistence-test.yml")
 public class ItemServiceTest {
@@ -38,12 +40,12 @@ public class ItemServiceTest {
     ItemService itemService;
 
     @Resource
-    ItemRepository itemRepository;
+    static ItemRepository itemRepository;
 
     private static boolean setUpIsDone = false;
 
-    @Before
-    public void setUp () {
+    @BeforeAll
+    public static void setUp () {
         if(setUpIsDone) return;
         Item item = new Item();
         item.setProviderItemId("id");
@@ -63,8 +65,8 @@ public class ItemServiceTest {
     @Test
     public void getItemTest() {
       Item item =  itemService.findById(new ItemId("id", "ebay"));
-      Assert.assertNotNull(item);
-      Assert.assertEquals("title", item.getTitle());
+      assertNotNull(item);
+      assertEquals("title", item.getTitle());
     }
 
     @Test
@@ -73,24 +75,24 @@ public class ItemServiceTest {
         itemIds.add(new ItemId("id", "ebay"));
         itemIds.add(new ItemId("id1", "ebay"));
         Iterable<Item> items =  itemService.findAllById(itemIds);
-        Assert.assertNotNull(items);
-        Assert.assertTrue(items.iterator().hasNext());
+        assertNotNull(items);
+        assertTrue(items.iterator().hasNext());
         items.iterator().next();
-        Assert.assertTrue(items.iterator().hasNext());
+        assertTrue(items.iterator().hasNext());
     }
     
     @Test
     public void testCountItemsUpdatedToday() {
 		long itemCount = itemRepository.countItemsUpdatedAfter(new Date(), Constants.EBAY);
 		log.debug("items: {}", itemCount);
-		Assert.assertEquals(0, itemCount);
+		assertEquals(0, itemCount);
 		LocalDate localDate = LocalDate.now().minusDays(1);
 		Date date = java.util.Date.from(localDate.atStartOfDay()
 			      .atZone(ZoneId.systemDefault())
 			      .toInstant());
 		itemCount = itemRepository.countItemsUpdatedAfter(date, Constants.EBAY);
-		Assert.assertEquals(2, itemCount);
-		Assert.assertEquals(2, itemRepository.count());
+		assertEquals(2, itemCount);
+		assertEquals(2, itemRepository.count());
 
 	}
     
@@ -102,6 +104,6 @@ public class ItemServiceTest {
 			      .toInstant());
 		var items = itemRepository.getItemsFromProviderUpdatedBefore(date, Constants.EBAY, PageRequest.of(0, 2));
 		log.debug("items: {}", items.size());
-		Assert.assertEquals(2, items.size());
+		assertEquals(2, items.size());
 	}
 }

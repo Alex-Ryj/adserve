@@ -1,12 +1,12 @@
 package com.arit.adserve.rules;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
 
@@ -19,11 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DroolsTest {
 
-	private KieSession kSession;
-	private StatelessKieSession kStatelessSession;
+	private static KieSession kSession;
+	private static StatelessKieSession kStatelessSession;
 	 
-    @Before
-    public void setup() throws IOException {        
+    @BeforeAll
+    public static void setup() throws IOException {        
         kSession = new DroolsConfig().getKieSession();
         kStatelessSession = new DroolsConfig().getKieStatlessSession();
     }
