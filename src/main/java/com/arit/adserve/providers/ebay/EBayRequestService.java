@@ -62,7 +62,7 @@ public class EBayRequestService {
     private long updatePeriodHours;
     
     @Value("${ebay.items.max.required}")
-    private long itemMaxRequired;
+    private long itemsMaxRequired;
     
     /**
      * eBay URL (camel https4)  for Finding API
@@ -95,7 +95,7 @@ public class EBayRequestService {
      */
     public String getFindRequestQuery() throws UnsupportedEncodingException {
     	eBayFindRequest.setItemsPerPage(itemsPerPage);
-    	eBayFindRequest.setItemsMaxRequired(itemMaxRequired);
+    	eBayFindRequest.setItemsMaxRequired(itemsMaxRequired);
     	eBayFindRequest.setItemsTotal(itemService.count());
     	LocalDateTime localDate = LocalDateTime.now().minusHours(updatePeriodHours);
 		Date date = java.util.Date.from(localDate
@@ -162,6 +162,7 @@ public class EBayRequestService {
      */
     public RequestState updateRequestState() throws IOException {
     	log.debug("find request before: {}", eBayFindRequest);
+    	eBayFindRequest.setItemsMaxRequired(itemsMaxRequired);
     	evaluate.evaluate(eBayFindRequest, RULES_EBAY_REQUEST_AGENDA);
     	log.debug("find request after: {}", eBayFindRequest);
     	return eBayFindRequest.getState();
@@ -179,7 +180,8 @@ public class EBayRequestService {
 		eBayFindRequest.setPageNumber(pageNumber);
 		eBayFindRequest.setItemsPerPage(itemsPerPage);
 		eBayFindRequest.setItemsTotalInRequest(itemsTotalInRequest);
-		eBayFindRequest.setPagesTotal(pagesTotal);		
+		eBayFindRequest.setPagesTotal(pagesTotal);	
+		eBayFindRequest.setItemsMaxRequired(itemsMaxRequired);
 	}
 		
 	/**

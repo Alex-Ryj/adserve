@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -111,6 +112,9 @@ public class EbayApiVerticle extends AbstractVerticle {
 			public void configure() throws Exception {
             	
             	String requestState = "requestState";   
+            	
+            	onException(RuntimeCamelException.class)
+            	.log("${body}");
             
             	
             	//root to initiate of eBay items processing via vert.x message
@@ -153,7 +157,7 @@ public class EbayApiVerticle extends AbstractVerticle {
                         .toD("https:svcs.ebay.com/services/search/FindingService/v1?${header.requestQuery}") //simple("${header.requestUrl}").getText())                        
                         .id("id_ebay_http_call")
                         .process(exchange -> {
-                        	String jsonResp = exchange.getIn().copy().getBody(String.class);
+                        	String jsonResp = exchange.getIn().getBody(String.class);
                         	log.info(jsonResp);
                         	JsonNode jsonObj = new ObjectMapper().readTree(jsonResp).get("findItemsByKeywordsResponse").get(0).get("paginationOutput").get(0);	
                     		long pagesTotal = Long.parseLong(jsonObj.get("totalPages").get(0).asText());
@@ -161,6 +165,7 @@ public class EbayApiVerticle extends AbstractVerticle {
                     		long pageNumber = Long.parseLong(jsonObj.get("pageNumber").get(0).asText());
                     		long itemsPerPage = Long.parseLong(jsonObj.get("entriesPerPage").get(0).asText());  
                     		eBayRequestService.updateEbayFindRequest(pageNumber, itemsPerPage, itemsTotalInRequest, pagesTotal);
+                    		exchange.getIn().setBody(new ObjectMapper().readTree(jsonResp));
                         })
                         .process(exchange -> readyToProcess.set(true))
                         .log(LoggingLevel.DEBUG, "${body}")
@@ -213,7 +218,7 @@ public class EbayApiVerticle extends AbstractVerticle {
                         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                         .process(exchange -> {
                             Item item = exchange.getIn().getBody(Item.class);
-                            exchange.getIn().setBody(item.getGaleryURL().replace("https", "https4"));
+                            exchange.getIn().setBody(item.getGaleryURL());
                             log.info("imageURL: {}", item.getGaleryURL());
                             exchange.getIn().setHeader("providerItemId", item.getProviderItemId());
                             exchange.getIn().setHeader("providerName", item.getProviderName());

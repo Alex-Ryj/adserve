@@ -1,7 +1,8 @@
 package com.arit.adserve.entity;
 
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -51,7 +52,7 @@ public class Item {
 	private String viewItemURL;
 	@Column
 	@ElementCollection(targetClass=String.class)
-	private List<String> subTitles;
+	private Set<String> subTitles = new HashSet<>();
 	private String description, source, productId, galeryURL, 
 				   location, country, condition, priceForamtted, currency;
 	@Lob
