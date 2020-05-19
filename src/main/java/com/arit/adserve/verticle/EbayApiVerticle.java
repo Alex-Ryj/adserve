@@ -1,6 +1,8 @@
 package com.arit.adserve.verticle;
 
+import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12,7 +14,11 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.arit.adserve.comm.Constants;
 import com.arit.adserve.comm.ItemJsonConvert;
@@ -61,6 +67,10 @@ public class EbayApiVerticle extends AbstractVerticle {
      */
     public static final String ROUTE_PROCESS_EBAY_ITEMS = "route_process_ebay_items";
     /**
+     * update items
+     */
+    public static final String ROUTE_UPDATE_EBAY_ITEMS = "route_update_ebay_items";
+    /**
      * get item image
      */
     public static final String ROUTE_GET_EBAY_IMAGE = "route_get_ebay_image";
@@ -69,7 +79,7 @@ public class EbayApiVerticle extends AbstractVerticle {
      */
     public static final String ROUTE_GET_FILE_HTTP = "route_get_file_http";    
     
-    private static final int maxItemsForUpdate = 20;
+    private static final int MAX_ITEMS_FOR_UPDATE = 20;
     
     private static final AtomicBoolean readyToProcess = new AtomicBoolean(true);
     
@@ -82,7 +92,10 @@ public class EbayApiVerticle extends AbstractVerticle {
     @Autowired
     private ItemService itemService;
     @Autowired
-    private EBayRequestService eBayRequestService;
+    private EBayRequestService eBayRequestService;    
+    @Qualifier("transactionReadUncommitted")
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     @Override
     public void start() throws Exception {
@@ -113,9 +126,9 @@ public class EbayApiVerticle extends AbstractVerticle {
             	
             	String requestState = "requestState";   
             	
+            	//camel general exception handling 
             	onException(RuntimeCamelException.class)
-            	.log("${body}");
-            
+            	.log("${body}");            
             	
             	//root to initiate of eBay items processing via vert.x message
                 from("vertx:" + VTX_EBAY_REQUEST)
@@ -143,7 +156,7 @@ public class EbayApiVerticle extends AbstractVerticle {
 						.otherwise()
 						.log(LoggingLevel.INFO, "no item processing this time");
 
-                //get ebay items processing
+                //get eBay items processing
                 from("direct:remoteEbayApiGetItems")
                         .routeId(ROUTE_GET_EBAY_ITEMS)
                         .process(exchange -> {
@@ -158,14 +171,13 @@ public class EbayApiVerticle extends AbstractVerticle {
                         .id("id_ebay_http_call")
                         .process(exchange -> {
                         	String jsonResp = exchange.getIn().getBody(String.class);
-                        	log.info(jsonResp);
                         	JsonNode jsonObj = new ObjectMapper().readTree(jsonResp).get("findItemsByKeywordsResponse").get(0).get("paginationOutput").get(0);	
                     		long pagesTotal = Long.parseLong(jsonObj.get("totalPages").get(0).asText());
                     		long itemsTotalInRequest = Long.parseLong(jsonObj.get("totalEntries").get(0).asText());
                     		long pageNumber = Long.parseLong(jsonObj.get("pageNumber").get(0).asText());
                     		long itemsPerPage = Long.parseLong(jsonObj.get("entriesPerPage").get(0).asText());  
                     		eBayRequestService.updateEbayFindRequest(pageNumber, itemsPerPage, itemsTotalInRequest, pagesTotal);
-                    		exchange.getIn().setBody(new ObjectMapper().readTree(jsonResp));
+                    		exchange.getIn().setBody(new ObjectMapper().readTree(jsonResp));  //TODO: preserve original exchange as JSON object in camel 3.3
                         })
                         .process(exchange -> readyToProcess.set(true))
                         .log(LoggingLevel.DEBUG, "${body}")
@@ -182,26 +194,50 @@ public class EbayApiVerticle extends AbstractVerticle {
                 
                 //update existing items from eBay
                 from("direct:remoteEbayApiUpdateItems")
+                .routeId(ROUTE_UPDATE_EBAY_ITEMS)
                 .process(exchange -> {
-                	List<Item> items = itemService.getItemsFromProviderBefore(eBayRequestService.getDateLimitForItems(), Constants.EBAY, maxItemsForUpdate);
+                	List<Item> items = itemService.getItemsFromProviderBefore(eBayRequestService.getDateLimitForItems(), Constants.EBAY, MAX_ITEMS_FOR_UPDATE);
                 	List<String> eBayItemIds = items.stream().map(Item::getProviderItemId).collect(Collectors.toList());
-                	exchange.getIn().setHeader("itemsUpdateUrl", eBayRequestService.getFindItemsUrl(eBayItemIds));
+                	exchange.getIn().setHeader("itemIds", eBayItemIds);
+                	String itemsUpdateUrl = eBayRequestService.getFindItemsUrl(eBayItemIds);
+                	if(itemsUpdateUrl != null) exchange.getIn().setHeader("itemsUpdateUrl", eBayRequestService.getFindItemsUrl(eBayItemIds));
                 })
+                .filter(simple("${header.itemsUpdateUrl} != null"))
                 .removeHeaders("CamelHttp*")
                 .toD(simple("${header.itemsUpdateUrl}").getText())
                 // step to delete items that are no longer on eBay
                 .process(exchange -> {
-                	String jsonResp = (String) exchange.getIn().getBody();
-                	List<String> itemIds = (List<String>) exchange.getIn().getHeader("itemIds");
-                	for (String itemId : itemIds) {
-						if(!jsonResp.contains(itemId)) {
-							Item item = itemService.findById(new ItemId(itemId, Constants.EBAY));
-							item.setDeleted(true);
-							itemService.update(item);
-						}
-					}
-                	
-                })
+                	String jsonResp = exchange.getIn().getBody(String.class);                	
+                	JsonNode jsonArrObj = new ObjectMapper().readTree(jsonResp).get("Item");
+                	List<String> itemEbayIds = (List<String>) exchange.getIn().getHeader("itemIds");
+                	List<ItemId> itemFullIds = new ArrayList<>();
+                	for (String itemId : itemEbayIds) {
+                		itemFullIds.add(new ItemId(itemId, Constants.EBAY));
+                	}
+							transactionTemplate.execute(new TransactionCallback() {
+								@Override
+								public Object doInTransaction(TransactionStatus status) {
+									Iterable<Item> items = itemService.findAllById(itemFullIds);
+									try {
+										Iterable<Item> updatedItemd = convert.updateEbayItems(jsonResp, items);
+										itemService.updateAll(updatedItemd);
+									} catch (IOException e) {
+										log.error("updating items", e);
+									}									
+									for (Item item : items) {
+										boolean delete = true;
+										for (JsonNode jsonObj : jsonArrObj) {
+											if (item.getProviderItemId().equals(jsonObj.get("ItemId")))
+												delete = false;
+										}
+										item.setDeleted(delete);
+										itemService.update(item);
+									}
+									return null;
+								}
+							}
+						);
+						})
                 .process(exchange -> readyToProcess.set(true))
                 .log("log:updateItems");
 
@@ -226,20 +262,26 @@ public class EbayApiVerticle extends AbstractVerticle {
                         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                         .toD("${body}")
                         .marshal().base64()
-                        .process(exchange -> {
-                            String imageStr = exchange.getIn().getBody(String.class);                          
-                            Optional<Item> optItem = Optional.ofNullable( itemService.findById(new ItemId(
-                            		exchange.getIn().getHeader("providerItemId").toString(),
-                            		exchange.getIn().getHeader("providerName").toString())));
-                            if (optItem.isPresent()) {
-                                Item item = optItem.get();
-                                item.setImage64BaseStr(imageStr);
-                                log.debug("saving {}", item);
-                                itemService.save(item);
+						.process(exchange -> {
+							String imageStr = exchange.getIn().getBody(String.class);
+							transactionTemplate.execute(new TransactionCallback() {
+								public Object doInTransaction(TransactionStatus status) {
+									Optional<Item> optItem = Optional.ofNullable(itemService.findById(
+											new ItemId(exchange.getIn().getHeader("providerItemId").toString(),
+													exchange.getIn().getHeader("providerName").toString())));
+									if (optItem.isPresent()) {
+										Item item = optItem.get();										
+										item.setImage64BaseStr(imageStr);
+										log.debug("saving {}", item);
+										itemService.save(item);
+									}
+									return null;
+								}								
                             }
-                        })                        
+                        );     
+                        })  
 						.log(LoggingLevel.INFO,
-								MessageFormat.format("saved image for item id: {1}", simple("${header.providerItemId").getText()));
+								MessageFormat.format("saved image for item id: {0}", simple("${header.providerItemId}").getText()));
 
                 //test root //TODO: remove this
 				from("vertx:" + VTX_EBAY_GET_IMAGE_CAMEL).routeId(ROUTE_GET_FILE_HTTP).process(exchange -> {

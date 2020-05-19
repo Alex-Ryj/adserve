@@ -51,6 +51,10 @@ public class ItemService {
 	public void update(Item item) {	
 		itemRepository.save(item);
 	}
+	
+	public void updateAll(Iterable<Item> items) {	
+		itemRepository.saveAll(items);
+	}
 
 	public void deleteById(ItemId id) {		
 			itemRepository.deleteById(id);		

@@ -16,6 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import com.arit.adserve.comm.Constants;
 import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
+import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -69,7 +70,7 @@ public class ItemJsonConvertTest {
 		items.add(item1);
 		items.add(item2);
 		var updatedItems = convert.updateEbayItems(jsonStr, items);
-		assertEquals(1, updatedItems.size());
+		assertEquals(1, ((List) updatedItems).size());
 	}
 	
 	@Test

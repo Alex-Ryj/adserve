@@ -57,7 +57,7 @@
 			<groupId>org.apache.camel.springboot</groupId>
 			<artifactId>camel-jaxb-starter</artifactId>
 		</dependency>
-		<dependency>
+		<dependency> 
 			<groupId>org.apache.camel.springboot</groupId>
 			<artifactId>camel-vertx-starter</artifactId>
 		</dependency>
@@ -72,6 +72,10 @@
 		<dependency>
 			<groupId>org.apache.camel.springboot</groupId>
 			<artifactId>camel-base64-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel.springboot</groupId>
+			<artifactId>camel-jpa-starter</artifactId>
 		</dependency>
 
 		<dependency>
@@ -125,7 +129,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>runtime</scope> 
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

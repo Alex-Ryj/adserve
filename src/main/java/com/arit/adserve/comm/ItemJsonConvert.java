@@ -62,10 +62,10 @@ public class ItemJsonConvert {
 	 *                href="https://developer.ebay.com/DevZone/shopping/docs/CallRef/GetMultipleItems.html>Ebay
 	 *                shopping API GetMultipleItems</a>)
 	 * @param items to be updated
-	 * @return a list of updated items
+	 * @return Iterable<Item> a List of updated items
 	 * @throws IOException
 	 */
-	public List<Item> updateEbayItems(String jsonStr, List<Item> items) throws IOException {
+	public Iterable<Item> updateEbayItems(String jsonStr, Iterable<Item> items) throws IOException {
 		List<Item> result = new ArrayList<>();
 		JsonNode jsonArrObj = new ObjectMapper().readTree(jsonStr).get("Item");
 		for (final JsonNode jsonObj : jsonArrObj) {

@@ -67,15 +67,15 @@ public class EBayRequestService {
     /**
      * eBay URL (camel https4)  for Finding API
      */
-    public static final String REQ_FINDING = "https4://svcs.ebay.com/services/search/FindingService/v1?";
+    public static final String REQ_FINDING = "https://svcs.ebay.com/services/search/FindingService/v1?";
     /**
      * eBay URL (camel https4) for shopping API
      */
-    public static final String REQ_SHOPPING = "https4://open.api.ebay.com/shopping?";
+    public static final String REQ_SHOPPING = "https://open.api.ebay.com/shopping?";
     /**
      * eBay URL (camel https4) for soap API 
      */
-    public static final String REQ_SOAP = "https4://api.ebay.com/wsapi";
+    public static final String REQ_SOAP = "https://api.ebay.com/wsapi";
     /**
      * Agenda name in Drools for processing eBay finding request
      */
@@ -138,7 +138,7 @@ public class EBayRequestService {
      * @throws UnsupportedEncodingException
      */
     public String getFindItemsUrl(List<String> ebayItemIds) throws UnsupportedEncodingException {
-        if(ebayItemIds.isEmpty() ) throw new IllegalArgumentException("no item ids");
+        if(ebayItemIds.isEmpty() ) return null;
     	Map<String, String> params = new HashMap<>();
         params.put("callname", "GetMultipleItems");
         params.put("responseencoding", "JSON"); 
@@ -151,7 +151,7 @@ public class EBayRequestService {
 		}
         sb.setLength(sb.length() - 1);
         params.put("ItemID", sb.toString()); 
-        return ApiUtils.canonicalQueryString(params);
+        return REQ_SHOPPING + ApiUtils.canonicalQueryString(params);
     }
     
     /**
