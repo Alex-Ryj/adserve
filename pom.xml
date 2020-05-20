@@ -21,6 +21,7 @@
 		<camel.version>3.3.0</camel.version>
 		<lombok.version>1.18.10</lombok.version>
 		<vert.x.version>3.9.0</vert.x.version>
+		<hibernate.search.version>5.11.5.Final</hibernate.search.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -126,6 +127,19 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-search-engine -->
+		 <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-engine</artifactId>
+            <version>${hibernate.search.version}</version>            
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-search-orm -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-orm</artifactId>
+            <version>${hibernate.search.version}</version>            
+        </dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>

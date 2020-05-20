@@ -13,3 +13,9 @@ spring:
    jpa:
       hibernate:
          ddl-auto: update   
+      properties:
+         hibernate:
+            search:
+               default:
+                  directory_provider = filesystem
+                  indexBase=~/search-index-test

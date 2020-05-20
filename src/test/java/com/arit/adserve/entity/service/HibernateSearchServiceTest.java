@@ -34,10 +34,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SpringBootTest
 @PropertySource("persistence-test.yml")
-public class ItemServiceTest {
+public class HibernateSearchServiceTest {
 
     @Autowired
-    ItemService itemService;
+    HibernateSearchService searchService;
 
     @Autowired
     ItemRepository itemRepository;
@@ -49,61 +49,26 @@ public class ItemServiceTest {
         if(setUpIsDone) return;
         Item item = new Item();
         item.setProviderItemId("id");
-        item.setTitle("title");
+        item.setTitle("title of this item");
         item.setProviderName(Constants.EBAY);
+        item.setDocId(item.getProviderName()+item.getProviderItemId());
         item.setViewItemURL("http://viewItemURL.com");
         itemRepository.save(item);
         Item item1 = new Item();
         item1.setProviderItemId("id1");
         item1.setProviderName(Constants.EBAY);
-        item1.setTitle("title1");
+        item1.setTitle("stuff of another item");
+        item1.setDocId(item1.getProviderName()+item1.getProviderItemId());
         item1.setViewItemURL("http://viewItemURL.com");
         itemRepository.save(item1);
         setUpIsDone = true;
     }
 
     @Test
-    public void getItemTest() {
-      Item item =  itemService.findById(new ItemId("id", Constants.EBAY));
-      assertNotNull(item);
-      assertEquals("title", item.getTitle());
+    public void getSearchTest() {
+      List<Item> items =  searchService.findItems("title");
+      assertNotNull(items);
+      assertEquals(1, items.size());
     }
 
-    @Test
-    public void getItemsTest() {
-        List<ItemId> itemIds = new ArrayList<>();
-        itemIds.add(new ItemId("id", Constants.EBAY));
-        itemIds.add(new ItemId("id1", Constants.EBAY));
-        Iterable<Item> items =  itemService.findAllById(itemIds);
-        assertNotNull(items);
-        assertTrue(items.iterator().hasNext());
-        items.iterator().next();
-        assertTrue(items.iterator().hasNext());
-    }
-    
-    @Test
-    public void testCountItemsUpdatedToday() {
-		long itemCount = itemRepository.countItemsUpdatedAfter(new Date(), Constants.EBAY);
-		log.debug("items: {}", itemCount);
-		assertEquals(0, itemCount);
-		LocalDate localDate = LocalDate.now().minusDays(1);
-		Date date = java.util.Date.from(localDate.atStartOfDay()
-			      .atZone(ZoneId.systemDefault())
-			      .toInstant());
-		itemCount = itemRepository.countItemsUpdatedAfter(date, Constants.EBAY);
-		assertEquals(2, itemCount);
-		assertEquals(2, itemRepository.count());
-
-	}
-    
-    @Test
-    public void testGetItemsToUpdatToday() {
-		LocalDate localDate = LocalDate.now().plusDays(1);
-		Date date = java.util.Date.from(localDate.atStartOfDay()
-			      .atZone(ZoneId.systemDefault())
-			      .toInstant());
-		var items = itemRepository.getItemsFromProviderUpdatedBefore(date, Constants.EBAY, PageRequest.of(0, 2));
-		log.debug("items: {}", items.size());
-		assertEquals(2, items.size());
-	}
 }

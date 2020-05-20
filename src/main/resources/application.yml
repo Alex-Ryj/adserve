@@ -12,4 +12,11 @@ spring:
          path: /h2/
    jpa:
       hibernate:
-         ddl-auto: update   
+         ddl-auto: update  
+      properties:
+         hibernate:
+            search:
+               default:
+                  directory_provider = filesystem
+                  indexBase=~/search-index
+          
