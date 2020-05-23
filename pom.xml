@@ -51,6 +51,32 @@
 			<version>${vert.x.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-codegen</artifactId>
+			<version>${vert.x.version}</version>
+			<classifier>processor</classifier>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web-api-contract</artifactId>
+			<version>${vert.x.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web-api-service</artifactId>
+			<version>${vert.x.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-service-proxy</artifactId>
+			<version>${vert.x.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web-client</artifactId>
+			<version>${vert.x.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.camel.springboot</groupId>
 			<artifactId>camel-jackson-starter</artifactId>
 		</dependency>
@@ -58,7 +84,7 @@
 			<groupId>org.apache.camel.springboot</groupId>
 			<artifactId>camel-jaxb-starter</artifactId>
 		</dependency>
-		<dependency> 
+		<dependency>
 			<groupId>org.apache.camel.springboot</groupId>
 			<artifactId>camel-vertx-starter</artifactId>
 		</dependency>
@@ -128,18 +154,18 @@
 			</exclusions>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-search-engine -->
-		 <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search-engine</artifactId>
-            <version>${hibernate.search.version}</version>            
-        </dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-search-engine</artifactId>
+			<version>${hibernate.search.version}</version>
+		</dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-search-orm -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search-orm</artifactId>
-            <version>${hibernate.search.version}</version>            
-        </dependency>
+		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-search-orm -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-search-orm</artifactId>
+			<version>${hibernate.search.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -174,6 +200,11 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<annotationProcessors>
+						<annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+					</annotationProcessors>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.hibernate.orm.tooling</groupId>

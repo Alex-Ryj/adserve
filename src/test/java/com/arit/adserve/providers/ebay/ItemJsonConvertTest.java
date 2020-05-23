@@ -38,7 +38,7 @@ public class ItemJsonConvertTest {
      	Item item = convert.getEbayItem(strJsonItem);
 		assertEquals("303220686589", item.getProviderItemId());	
 		assertEquals("Drone X Pro Foldable Quadcopter WIFI FPV 720P Wide-Angle HD Camera 3 Batteries", item.getTitle());
-		assertEquals("https://thumbs2.ebaystatic.com/m/mV9DBtlnOOw9Eb5u8CNfgyA/140.jpg", item.getGaleryURL());
+		assertEquals("https://thumbs2.ebaystatic.com/m/mV9DBtlnOOw9Eb5u8CNfgyA/140.jpg", item.getGalleryURL());
 		assertEquals(5839, item.getPrice());
 	}
 	

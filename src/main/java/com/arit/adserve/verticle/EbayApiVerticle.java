@@ -254,8 +254,8 @@ public class EbayApiVerticle extends AbstractVerticle {
                         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                         .process(exchange -> {
                             Item item = exchange.getIn().getBody(Item.class);
-                            exchange.getIn().setBody(item.getGaleryURL());
-                            log.info("imageURL: {}", item.getGaleryURL());
+                            exchange.getIn().setBody(item.getGalleryURL());
+                            log.info("imageURL: {}", item.getGalleryURL());
                             exchange.getIn().setHeader("providerItemId", item.getProviderItemId());
                             exchange.getIn().setHeader("providerName", item.getProviderName());
                         })

@@ -20,6 +20,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.arit.adserve.verticle.EbayApiVerticle;
 import com.arit.adserve.verticle.ItemVerticle;
+import com.arit.adserve.verticle.ItemOpenApiVerticle;
 import com.arit.adserve.verticle.WebServerVerticle;
 
 import io.vertx.core.DeploymentOptions;
@@ -50,6 +51,7 @@ public class AppConfiguration {
 	public void deployVerticles() {
 		DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
 		vertx.deployVerticle(applicationContext.getBean(WebServerVerticle.class));
+		vertx.deployVerticle(applicationContext.getBean(ItemOpenApiVerticle.class));
 		vertx.deployVerticle(applicationContext.getBean(EbayApiVerticle.class), optionsWorker);
 		vertx.deployVerticle(applicationContext.getBean(ItemVerticle.class), optionsWorker);
 	}

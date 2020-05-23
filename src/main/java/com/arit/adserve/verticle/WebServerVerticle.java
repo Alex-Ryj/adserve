@@ -45,7 +45,7 @@ public class WebServerVerticle extends AbstractVerticle {
                         }else
                             log.info("error", reply.cause());
                     });
-                }).listen(8080);
+                }).listen(8081);
     }
 
     private Future<Void> startHttpServer() {

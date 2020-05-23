@@ -50,9 +50,9 @@ public class ItemJsonConvert {
 		item.setTitle(title);
 		item.setPrice(price);
 		item.setCurrency(currency);
-		item.setPriceForamtted(priceFormatted);
+		item.setPriceFormatted(priceFormatted);
 		item.setCondition(condition);
-		item.setGaleryURL(galleryURL);
+		item.setGalleryURL(galleryURL);
 		item.setViewItemURL(viewItemURL);
 		return item;
 	}
@@ -84,8 +84,8 @@ public class ItemJsonConvert {
 					item.setTitle(title);
 					item.setPrice(price);
 					item.setCurrency(currency);
-					item.setPriceForamtted(priceStr);
-					item.setGaleryURL(galleryURL);
+					item.setPriceFormatted(priceStr);
+					item.setGalleryURL(galleryURL);
 					item.setViewItemURL(viewItemURL);
 					result.add(item);
 				}

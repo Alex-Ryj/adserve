@@ -1,0 +1,104 @@
+openapi: '3.0.2'
+info:
+  title: API Title
+  version: '1.0'
+servers:
+  - url: http://localhost:8080/v1
+paths:
+  /item:
+    get:
+      summary: an item 
+      operationId: getItem
+      x-vertx-event-bus: items_manager.adserv
+      tags:
+        - item       
+      responses:
+        '200':
+          description: OK - Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+components:
+  schemas:
+    Item:
+      type: object
+      required:
+        - providerItemId
+        - providerName
+        - title
+        - viewItemURL
+      properties:
+        providerItemId:
+          type: string
+        providerName:
+          type: string
+        relevance:
+          type: integer
+          format: int64
+        title: 
+          type: string
+        viewItemURL:
+          type: string
+        subTitles:
+          type: array
+          items:
+            type: string
+        description: 
+          type: string
+        location:
+          type: string
+        country:
+          type: string
+        condition:
+          type: string
+        currency:
+          type: string
+        price: 
+          type: integer
+          format: int32
+        priceFormatted:
+          type: string
+        source:
+          type: string
+        productId:
+          type: string
+        galleryURL:
+          type: string
+        image64BaseStr:
+          type: string
+        modifiedImage64BaseStr:
+          type: string
+        process:
+          type: boolean
+        deleted:
+          type: boolean
+        rank: 
+          type: integer
+          format: int64
+        createdOn:
+          type: string
+          format: date-time
+        updatedOn:
+          type: string
+          format: date-time        
+    Items:
+      type: array
+      items:
+        $ref: "#/components/schemas/Item"
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

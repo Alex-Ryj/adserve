@@ -75,7 +75,7 @@ public class Item {
 	private String currency;
 	@Field @NumericField
 	private int price;  //the price in cents, pence, kopecks etc.
-	private String source, productId, galeryURL, priceForamtted;
+	private String source, productId, galleryURL, priceFormatted;
 	@Lob
 	@Basic(fetch = FetchType.LAZY)
 	private String image64BaseStr;
