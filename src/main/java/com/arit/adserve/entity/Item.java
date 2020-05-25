@@ -54,7 +54,7 @@ public class Item {
 	private Integer relevance;
 	@DocumentId(name = "item_doc_id")
 	private String docId;
-	@Field
+	@org.hibernate.search.annotations.Field
 	@NotBlank(message = "title is mandatory")
 	private String title;
 	@NotBlank(message = "viewItemURL is mandatory")
@@ -63,19 +63,22 @@ public class Item {
 	@Column
 	@ElementCollection(targetClass=String.class)
 	private Set<String> subTitles = new HashSet<>();
-	@Field
+	@org.hibernate.search.annotations.Field
 	private String description;
-	@Field
+	@org.hibernate.search.annotations.Field
 	private String location;
-	@Field
+	@org.hibernate.search.annotations.Field
 	private String country;
-	@Field
+	@org.hibernate.search.annotations.Field
 	private String condition;
-	@Field
+	@org.hibernate.search.annotations.Field
 	private String currency;
-	@Field @NumericField
+	@org.hibernate.search.annotations.Field @org.hibernate.search.annotations.NumericField
 	private int price;  //the price in cents, pence, kopecks etc.
-	private String source, productId, galleryURL, priceFormatted;
+	private String source;
+	private String productId;
+	private String galleryURL;
+	private String priceFormatted;
 	@Lob
 	@Basic(fetch = FetchType.LAZY)
 	private String image64BaseStr;
@@ -83,8 +86,10 @@ public class Item {
 	@Basic(fetch = FetchType.LAZY)
 	private String modifiedImage64BaseStr;
 	private Date modifiedImageDate;	
-	private boolean process, deleted;
+	private boolean process;
+	private boolean deleted;
 	private int rank;
-	private Date createdOn = new Date(), updatedOn = new Date();
+	private Date createdOn = new Date();
+	private Date updatedOn = new Date();
 	
 }

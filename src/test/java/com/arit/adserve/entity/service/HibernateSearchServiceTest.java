@@ -33,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootTest
-@PropertySource("persistence-test.yml")
 public class HibernateSearchServiceTest {
 
     @Autowired

@@ -22,6 +22,8 @@ import com.arit.adserve.verticle.EbayApiVerticle;
 import com.arit.adserve.verticle.ItemVerticle;
 import com.arit.adserve.verticle.ItemOpenApiVerticle;
 import com.arit.adserve.verticle.WebServerVerticle;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -49,8 +51,7 @@ public class AppConfiguration {
 	private PlatformTransactionManager transactionManager;
 
 	public void deployVerticles() {
-		DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);
-		vertx.deployVerticle(applicationContext.getBean(WebServerVerticle.class));
+		DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);		
 		vertx.deployVerticle(applicationContext.getBean(ItemOpenApiVerticle.class));
 		vertx.deployVerticle(applicationContext.getBean(EbayApiVerticle.class), optionsWorker);
 		vertx.deployVerticle(applicationContext.getBean(ItemVerticle.class), optionsWorker);
@@ -97,5 +98,12 @@ public class AppConfiguration {
 		transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
 		return transactionTemplate;
 	}
+	
+	  /*
+	   * Use the standard Mongo driver API to create a com.mongodb.client.MongoClient instance.
+	   */
+	   public @Bean MongoClient mongoClient() {
+	       return MongoClients.create("mongodb://localhost:27017");
+	   }
 
 }

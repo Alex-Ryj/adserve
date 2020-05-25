@@ -33,9 +33,9 @@ public class ItemService {
 		return itemRepository.findById(id).orElse(null);
 	}
 
-	public List<Item> findAll(int pageNumber, int rowPerPage) {
+	public List<Item> findAll(int pageNumber, int rowsPerPage) {
 		List<Item> items = new ArrayList<>();
-		PageRequest sortedByLastUpdateDesc = PageRequest.of(pageNumber - 1, rowPerPage, Sort.by("title").descending());
+		PageRequest sortedByLastUpdateDesc = PageRequest.of(pageNumber - 1, rowsPerPage, Sort.by("title").descending());
 		itemRepository.findAll(sortedByLastUpdateDesc).forEach(items::add);
 		return items;
 	}

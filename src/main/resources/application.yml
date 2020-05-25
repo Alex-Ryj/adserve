@@ -17,6 +17,7 @@ spring:
          hibernate:
             search:
                default:
-                  directory_provider = filesystem
-                  indexBase=~/search-index
+                  directory_provider: filesystem
+                  indexBase: /home/nico/data/search-index
+
           

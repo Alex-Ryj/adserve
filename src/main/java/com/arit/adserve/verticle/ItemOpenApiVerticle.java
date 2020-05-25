@@ -35,8 +35,8 @@ public class ItemOpenApiVerticle extends AbstractVerticle {
 	 private void startItemVtxService() {
 		serviceBinder = new ServiceBinder(vertx);			
 		ItemVtxService itemVtxService =  ItemVtxService.create(vertx);
-		consumer = serviceBinder.setAddress("items_manager.adserv")
-				.register(ItemVtxService.class, itemVtxService);
+		consumer = serviceBinder.setAddress("items_manager.adserve")
+				.register(ItemVtxService.class, itemVtxService);		
 		 
 	 }
 
@@ -116,20 +116,6 @@ public class ItemOpenApiVerticle extends AbstractVerticle {
 	        vertx.deployVerticle(new ItemOpenApiVerticle());
 	      }
 
+}
 
-	      // tag::loadSpecSampleMethod[]
-	      // For documentation purpose
-	      private void loadSpecSample(Future<Void> future) {
-	        // tag::loadSpec[]
-	        OpenAPI3RouterFactory.create(this.vertx, "openapi/items_api.yml", ar -> {
-	          if (ar.succeeded()) {
-	            OpenAPI3RouterFactory routerFactory = ar.result(); // <1>
-	          } else {
-	            // Something went wrong during router factory initialization
-	            future.fail(ar.cause()); // <2>
-	          }
-	        });
-	        // end::loadSpec[]
-	      }
-	      // end::loadSpecSampleMethod[]
-	    }
+

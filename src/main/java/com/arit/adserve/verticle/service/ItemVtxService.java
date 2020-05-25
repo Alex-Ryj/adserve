@@ -10,7 +10,7 @@ import io.vertx.ext.web.api.generator.WebApiServiceGen;
 @WebApiServiceGen
 public interface ItemVtxService {
 	
-	void getItem(String providerItemId,  OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
+	void getItem(String providerName, String providerItemId,  OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 	
 	/**
 	 * Factory method to instantiate the implementation

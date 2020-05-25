@@ -1,4 +1,6 @@
 spring:
+   main:
+     allow-bean-definition-overriding: true
    datasource:
       url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
       driverClassName: org.h2.Driver
@@ -17,5 +19,8 @@ spring:
          hibernate:
             search:
                default:
-                  directory_provider = filesystem
-                  indexBase=~/search-index-test
+                  directory_provider: filesystem
+                  indexBase: /home/nico/data/search-index
+   data:
+      mongodb:
+         url: mongodb://localhost:27017/items               

@@ -5,13 +5,26 @@ info:
 servers:
   - url: http://localhost:8080/v1
 paths:
-  /item:
+  /items/item/{providerName}/{providerItemId}:
     get:
       summary: an item 
       operationId: getItem
-      x-vertx-event-bus: items_manager.adserv
+      x-vertx-event-bus: items_manager.adserve
       tags:
-        - item       
+        - item    
+      parameters:
+        - name: providerName
+          in: path
+          description: provider name of the item
+          required: true
+          schema:
+            type: string  
+        - name: providerItemId
+          in: path
+          description: provider item id
+          required: true
+          schema:
+            type: string               
       responses:
         '200':
           description: OK - Expected response to a valid request
