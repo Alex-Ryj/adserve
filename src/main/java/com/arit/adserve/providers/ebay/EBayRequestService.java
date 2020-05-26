@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.arit.adserve.comm.Constants;
 import com.arit.adserve.entity.Item;
-import com.arit.adserve.entity.service.ItemService;
+import com.arit.adserve.entity.service.ItemServiceImpl;
 import com.arit.adserve.providers.ApiUtils;
 import com.arit.adserve.rules.Evaluate;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -84,7 +84,7 @@ public class EBayRequestService {
     private static final EBayFindRequest eBayFindRequest = new EBayFindRequest();
     
     @Autowired
-    private ItemService itemService;
+    private ItemServiceImpl itemService;
     
     @Autowired
     private Evaluate evaluate;

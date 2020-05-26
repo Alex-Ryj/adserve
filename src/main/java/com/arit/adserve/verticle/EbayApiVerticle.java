@@ -24,7 +24,7 @@ import com.arit.adserve.comm.Constants;
 import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
-import com.arit.adserve.entity.service.ItemService;
+import com.arit.adserve.entity.service.ItemServiceImpl;
 import com.arit.adserve.providers.ebay.EBayRequestService;
 import com.arit.adserve.providers.ebay.RequestState;
 import com.arit.adserve.rules.Evaluate;
@@ -90,7 +90,7 @@ public class EbayApiVerticle extends AbstractVerticle {
     @Autowired
     private Evaluate evaluate;
     @Autowired
-    private ItemService itemService;
+    private ItemServiceImpl itemService;
     @Autowired
     private EBayRequestService eBayRequestService;    
     @Qualifier("transactionReadUncommitted")

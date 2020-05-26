@@ -34,10 +34,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SpringBootTest
 @PropertySource("persistence-test.yml")
-public class ItemServiceTest {
+public class ItemServiceImplTest {
 
     @Autowired
-    ItemService itemService;
+    ItemServiceImpl itemService;
 
     @Autowired
     ItemRepository itemRepository;

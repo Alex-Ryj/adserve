@@ -3,7 +3,7 @@ package com.arit.adserve.verticle;
 import com.arit.adserve.comm.ErrorCodes;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
-import com.arit.adserve.entity.service.ItemService;
+import com.arit.adserve.entity.service.ItemServiceImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.Json;
@@ -33,7 +33,7 @@ public class ItemVerticle extends AbstractVerticle {
 	public static final String GET_IMAGE_VTX = "get_image";
 
 	@Autowired
-	private ItemService itemService;
+	private ItemServiceImpl itemService;
 
 	@Override
 	public void start() throws Exception {

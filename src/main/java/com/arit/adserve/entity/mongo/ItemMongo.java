@@ -22,9 +22,13 @@ import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.NumericField;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.arit.adserve.entity.ItemId;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -39,9 +43,17 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString
 @Indexed
+@Document
+@CompoundIndexes({
+    @CompoundIndex(name = "provider_itemId", def = "{'providerName' : 1, 'providerItemId': 1}")
+})
 public class ItemMongo {	
+	
+	@Id
+	private String id;
 	
 	@NotBlank(message = "providerItemId is mandatory")
 	private String providerItemId;

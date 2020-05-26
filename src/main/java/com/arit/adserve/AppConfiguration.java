@@ -44,11 +44,6 @@ public class AppConfiguration {
 	@Autowired
 	private ApplicationContext applicationContext;
 
-	@Autowired
-	private CamelContext camelContext;
-
-	@Autowired
-	private PlatformTransactionManager transactionManager;
 
 	public void deployVerticles() {
 		DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);		
@@ -93,17 +88,11 @@ public class AppConfiguration {
 	}
 
 	@Bean(name="transactionReadUncommitted")	
-	public TransactionTemplate transactionTemplate() {
+	public TransactionTemplate transactionTemplate(PlatformTransactionManager transactionManager) {
 		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 		transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
 		return transactionTemplate;
 	}
 	
-	  /*
-	   * Use the standard Mongo driver API to create a com.mongodb.client.MongoClient instance.
-	   */
-	   public @Bean MongoClient mongoClient() {
-	       return MongoClients.create("mongodb://localhost:27017");
-	   }
 
 }

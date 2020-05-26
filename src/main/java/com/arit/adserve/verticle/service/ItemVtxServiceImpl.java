@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationContextAware;
 import com.arit.adserve.comm.Constants;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
-import com.arit.adserve.entity.service.ItemService;
+import com.arit.adserve.entity.service.ItemServiceImpl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -22,7 +22,7 @@ public class ItemVtxServiceImpl implements ItemVtxService, ApplicationContextAwa
 	
 	  private Vertx vertx;
 	  private ApplicationContext ctx;
-	  private ItemService itemService;
+	  private ItemServiceImpl itemService;
 
 	  public ItemVtxServiceImpl(Vertx vertx) {  this.vertx = vertx;  }
 
@@ -45,6 +45,6 @@ public class ItemVtxServiceImpl implements ItemVtxService, ApplicationContextAwa
 	@Override
 	public void setApplicationContext(ApplicationContext context){
 		this.ctx=context;	
-		itemService = this.ctx.getBean(ItemService.class);
+		itemService = this.ctx.getBean(ItemServiceImpl.class);
 	}
 }
