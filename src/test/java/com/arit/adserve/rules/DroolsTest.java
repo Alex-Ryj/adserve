@@ -11,6 +11,7 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
 
 import com.arit.adserve.entity.Item;
+import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.providers.ebay.EBayFindRequest;
 import com.arit.adserve.providers.ebay.RequestState;
 
@@ -30,7 +31,7 @@ public class DroolsTest {
  
     @Test
     public void testEbayItem(){
-        Item item = new Item();
+        ItemMongo item = new ItemMongo();
         item.setPrice(7000);
         item.setCondition("Used");
         kSession.insert(item); 
@@ -107,8 +108,6 @@ public class DroolsTest {
           kSession.fireAllRules();
           assertEquals(RequestState.WAIT, fr.getState());
           assertEquals(1, fr.getPageNumber());
-          kSession.dispose();
-          
+          kSession.dispose();          
 	}
-
 }

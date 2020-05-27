@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -16,11 +15,11 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 import com.arit.adserve.comm.Constants;
-import com.arit.adserve.entity.Item;
-import com.arit.adserve.entity.repository.ItemRepository;
+import com.arit.adserve.entity.mongo.ItemMongo;
+import com.arit.adserve.entity.mongo.repository.ItemMongoRepository;
 import com.arit.adserve.verticle.EbayApiVerticle;
 
 /**
@@ -31,16 +30,16 @@ import com.arit.adserve.verticle.EbayApiVerticle;
  * @since May 11, 2020
  * 
  */
-@TestPropertySource(locations = "file:app.properties")
 @SpringBootTest
+@ActiveProfiles("test")
 public class EBayCamelTest {
 
 	@Autowired
 	protected CamelContext camelContext;
 	@Autowired
 	private ProducerTemplate template;
-    @Resource
-    private ItemRepository itemRepository;
+	@Autowired
+    private ItemMongoRepository itemRepository;
 
 	@Test
 	public void vertxRouteTest() throws Exception {
@@ -92,14 +91,14 @@ public class EBayCamelTest {
 		Date date = java.util.Date.from(localDate.atStartOfDay()
 			      .atZone(ZoneId.systemDefault())
 			      .toInstant());
-		 Item item = new Item();
+		 ItemMongo item = new ItemMongo();
 	        item.setProviderItemId("101");
 	        item.setTitle("title");
 	        item.setProviderName(Constants.EBAY);
 	        item.setViewItemURL("http://viewItemURL.com");
 	        item.setUpdatedOn(date);
 	        itemRepository.save(item);
-	        Item item1 = new Item();
+	        ItemMongo item1 = new ItemMongo();
 	        item1.setProviderItemId("102");
 	        item1.setProviderName(Constants.EBAY);
 	        item1.setTitle("title1");
@@ -115,8 +114,8 @@ public class EBayCamelTest {
 		mockOut.expectedMessageCount(1);
 		template.sendBody("direct:remoteEbayApiUpdateItems", "init");
 		mockOut.assertIsSatisfied();
-		Iterable<Item> items = itemRepository.findAll();
-		for (Item itemUpdated : items) {
+		Iterable<ItemMongo> items = itemRepository.findAll();
+		for (ItemMongo itemUpdated : items) {
 			assertTrue(itemUpdated.isDeleted());			
 		}
 	}

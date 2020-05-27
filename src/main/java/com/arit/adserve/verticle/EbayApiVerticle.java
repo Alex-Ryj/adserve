@@ -24,6 +24,8 @@ import com.arit.adserve.comm.Constants;
 import com.arit.adserve.comm.ItemJsonConvert;
 import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.ItemId;
+import com.arit.adserve.entity.mongo.ItemMongo;
+import com.arit.adserve.entity.mongo.service.ItemMongoService;
 import com.arit.adserve.entity.service.ItemServiceImpl;
 import com.arit.adserve.providers.ebay.EBayRequestService;
 import com.arit.adserve.providers.ebay.RequestState;
@@ -90,7 +92,7 @@ public class EbayApiVerticle extends AbstractVerticle {
     @Autowired
     private Evaluate evaluate;
     @Autowired
-    private ItemServiceImpl itemService;
+    private ItemMongoService itemService;
     @Autowired
     private EBayRequestService eBayRequestService;    
     @Qualifier("transactionReadUncommitted")
@@ -182,22 +184,22 @@ public class EbayApiVerticle extends AbstractVerticle {
                         .process(exchange -> readyToProcess.set(true))
                         .log(LoggingLevel.DEBUG, "${body}")
                         .split().jsonpathWriteAsString("$.findItemsByKeywordsResponse[0].searchResult[0].item[*]")
-                        .bean(convert, "getEbayItem")
+                        .bean(convert, "getEbayItemMongo")
                         .bean(evaluate)
                         .process(exchange -> {
-                            Item item = exchange.getIn().getBody(Item.class);
+                            ItemMongo item = exchange.getIn().getBody(ItemMongo.class);
                             log.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());
                             if(item.isProcess()) itemService.save(item);
                         })
-                        .filter(simple("${mandatoryBodyAs(com.arit.adserve.entity.Item).isProcess()}"))
+                        .filter(simple("${mandatoryBodyAs(com.arit.adserve.entity.mongo.ItemMongo).isProcess()}"))
                         .to("direct:getImage");
                 
                 //update existing items from eBay
                 from("direct:remoteEbayApiUpdateItems")
                 .routeId(ROUTE_UPDATE_EBAY_ITEMS)
                 .process(exchange -> {
-                	List<Item> items = itemService.getItemsFromProviderBefore(eBayRequestService.getDateLimitForItems(), Constants.EBAY, MAX_ITEMS_FOR_UPDATE);
-                	List<String> eBayItemIds = items.stream().map(Item::getProviderItemId).collect(Collectors.toList());
+                	List<ItemMongo> items = itemService.getItemsFromProviderBefore(eBayRequestService.getDateLimitForItems(), Constants.EBAY, MAX_ITEMS_FOR_UPDATE);
+                	List<String> eBayItemIds = items.stream().map(ItemMongo::getProviderItemId).collect(Collectors.toList());
                 	exchange.getIn().setHeader("itemIds", eBayItemIds);
                 	String itemsUpdateUrl = eBayRequestService.getFindItemsUrl(eBayItemIds);
                 	if(itemsUpdateUrl != null) exchange.getIn().setHeader("itemsUpdateUrl", eBayRequestService.getFindItemsUrl(eBayItemIds));
@@ -210,21 +212,18 @@ public class EbayApiVerticle extends AbstractVerticle {
                 	String jsonResp = exchange.getIn().getBody(String.class);                	
                 	JsonNode jsonArrObj = new ObjectMapper().readTree(jsonResp).get("Item");
                 	List<String> itemEbayIds = (List<String>) exchange.getIn().getHeader("itemIds");
-                	List<ItemId> itemFullIds = new ArrayList<>();
-                	for (String itemId : itemEbayIds) {
-                		itemFullIds.add(new ItemId(itemId, Constants.EBAY));
-                	}
+
 							transactionTemplate.execute(new TransactionCallback() {
 								@Override
 								public Object doInTransaction(TransactionStatus status) {
-									Iterable<Item> items = itemService.findAllById(itemFullIds);
+									Iterable<ItemMongo> items = itemService.findAllByProviderIds(itemEbayIds, Constants.EBAY);
 									try {
-										Iterable<Item> updatedItemd = convert.updateEbayItems(jsonResp, items);
+										Iterable<ItemMongo> updatedItemd = convert.updateEbayItemsMongo(jsonResp, items);
 										itemService.updateAll(updatedItemd);
 									} catch (IOException e) {
 										log.error("updating items", e);
 									}									
-									for (Item item : items) {
+									for (ItemMongo item : items) {
 										boolean delete = true;
 										for (JsonNode jsonObj : jsonArrObj) {
 											if (item.getProviderItemId().equals(jsonObj.get("ItemId")))
@@ -245,15 +244,15 @@ public class EbayApiVerticle extends AbstractVerticle {
                 from("direct:getImage")
                 .routeId(ROUTE_GET_EBAY_IMAGE)
                 .process(exchange -> {
-                	Item item = exchange.getIn().getBody(Item.class);
-                	exchange.getIn().setHeader("hasImage", itemService.hasImage(new ItemId(item.getProviderItemId(), Constants.EBAY)));
+                	ItemMongo item = exchange.getIn().getBody(ItemMongo.class);
+                	exchange.getIn().setHeader("hasImage", itemService.hasImage(item.getProviderItemId(), Constants.EBAY));
                 	
                 })
  		       .filter().simple("${header.hasImage} == false")                		
                         .setHeader("Accept", simple("image/jpeg"))
                         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                         .process(exchange -> {
-                            Item item = exchange.getIn().getBody(Item.class);
+                            ItemMongo item = exchange.getIn().getBody(ItemMongo.class);
                             exchange.getIn().setBody(item.getGalleryURL());
                             log.info("imageURL: {}", item.getGalleryURL());
                             exchange.getIn().setHeader("providerItemId", item.getProviderItemId());
@@ -266,11 +265,11 @@ public class EbayApiVerticle extends AbstractVerticle {
 							String imageStr = exchange.getIn().getBody(String.class);
 							transactionTemplate.execute(new TransactionCallback() {
 								public Object doInTransaction(TransactionStatus status) {
-									Optional<Item> optItem = Optional.ofNullable(itemService.findById(
-											new ItemId(exchange.getIn().getHeader("providerItemId").toString(),
-													exchange.getIn().getHeader("providerName").toString())));
+									Optional<ItemMongo> optItem = Optional.ofNullable(itemService.findByProviderId(
+											exchange.getIn().getHeader("providerItemId").toString(),
+													exchange.getIn().getHeader("providerName").toString()));
 									if (optItem.isPresent()) {
-										Item item = optItem.get();										
+										ItemMongo item = optItem.get();										
 										item.setImage64BaseStr(imageStr);
 										log.debug("saving {}", item);
 										itemService.save(item);

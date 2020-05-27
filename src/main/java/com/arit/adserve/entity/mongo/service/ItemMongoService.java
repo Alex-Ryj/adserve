@@ -40,9 +40,23 @@ public class ItemMongoService {
 		repo.findAll(sortedByLastUpdateDesc).forEach(items::add);
 		return items;
 	}
+	
+	public ItemMongo findByProviderId(String providerItemId, String providerName) {
+		Query query = new Query();
+		query.addCriteria(
+				Criteria.where("providerItemId").is(providerItemId).and("providerName").is(providerName));				
+		return mongoOps.findOne(query, ItemMongo.class);
+	}
 
 	public Iterable<ItemMongo> findAllById(List<String> itemIds) {
 		return repo.findAllById(itemIds);
+	}
+	
+	public Iterable<ItemMongo> findAllByProviderIds(List<String> providerItemIds, String providerName) {
+		Query query = new Query();
+		query.addCriteria(
+				Criteria.where("providerName").is(providerName).and("providerItemId").in(providerItemIds));				
+		return mongoOps.find(query, ItemMongo.class);
 	}
 
 	public ItemMongo save(ItemMongo item) {
@@ -51,7 +65,6 @@ public class ItemMongoService {
 
 	public void update(ItemMongo item) {
 		repo.save(item);
-
 	}
 
 	public void updateAll(Iterable<ItemMongo> items) {
@@ -73,11 +86,11 @@ public class ItemMongoService {
 		return mongoOps.count(query, ItemMongo.class);
 	}
 
-	public boolean hasImage(String providerName, String providerItemId) {
+	public boolean hasImage(String providerItemId, String providerName) {
 		Query query = new Query();
 		query.addCriteria(
 				Criteria.where("providerItemId").is(providerItemId).and("providerName").is(providerName));
-		var item = mongoOps.findOne(query, ItemMongo.class);
+		var item = findByProviderId(providerItemId, providerName);
 		return StringUtils.isNotEmpty(item.getImage64BaseStr());
 	}
 
@@ -88,5 +101,4 @@ public class ItemMongoService {
 				.limit(limit).with(Sort.by("updatedOn").descending());
 		return mongoOps.find(query, ItemMongo.class);
 	}
-
 }
