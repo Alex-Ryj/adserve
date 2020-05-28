@@ -1,6 +1,10 @@
 package com.arit.adserve.entity.mongo.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -40,7 +44,7 @@ class ItemMongoServiceTest {
 	
 
 	@BeforeEach
-	public void setUp() {
+	private void setUp() {
 		if (setUpIsDone)
 			return;
 		repo.deleteAll();
@@ -62,6 +66,7 @@ class ItemMongoServiceTest {
 		itemId2 = item2.getId();
 		setUpIsDone = true;
 	}
+
 
 	@Test
 	void testFindById() {
@@ -112,5 +117,12 @@ class ItemMongoServiceTest {
 		ItemMongo item = service.findByProviderId(providerItemId1, Constants.EBAY);
 		assertNotNull(item);
 	}
+	
+	@Test
+	void findByProviderIdNotFound() throws Exception {
+		ItemMongo item = service.findByProviderId("non_exisitng_id", Constants.EBAY);
+		assertNull(item);
+	}
+
 
 }

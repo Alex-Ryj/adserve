@@ -13,6 +13,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import com.arit.adserve.providers.ebay.EbayCamelService;
+
 import java.util.Base64;
 
 /**
@@ -32,7 +35,7 @@ public class WebServerVerticle extends AbstractVerticle {
         vertx.createHttpServer()
                 .requestHandler(request -> {
                     // This handler gets called for each request that arrives on the server
-                    vertx.eventBus().request(EbayApiVerticle.VTX_EBAY_GET_IMAGE_CAMEL, "test", reply -> {
+                    vertx.eventBus().request(EbayCamelService.VTX_EBAY_GET_IMAGE_CAMEL, "test", reply -> {
                         if(reply.succeeded()) {
                             log.info("received: {}", reply.result().body());
                             HttpServerResponse response = request.response();
@@ -78,7 +81,7 @@ public class WebServerVerticle extends AbstractVerticle {
 
         DeliveryOptions options = new DeliveryOptions().addHeader("action", "all-pages"); // <2>
 
-        vertx.eventBus().request(EbayApiVerticle.VTX_EBAY_REQUEST, new JsonObject(), options, reply -> {  // <1>
+        vertx.eventBus().request(EbayCamelService.VTX_EBAY_REQUEST, new JsonObject(), options, reply -> {  // <1>
             if (reply.succeeded()) {
                 JsonObject body = (JsonObject) reply.result().body();   // <3>
                 context.put("title", "Wiki home");

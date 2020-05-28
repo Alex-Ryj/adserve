@@ -1,18 +1,22 @@
-package com.arit.adserve.verticle;
+package com.arit.adserve.providers.ebay;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.lucene.index.ExitableDirectoryReader.ExitingReaderException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -27,8 +31,6 @@ import com.arit.adserve.entity.ItemId;
 import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.entity.mongo.service.ItemMongoService;
 import com.arit.adserve.entity.service.ItemServiceImpl;
-import com.arit.adserve.providers.ebay.EBayRequestService;
-import com.arit.adserve.providers.ebay.RequestState;
 import com.arit.adserve.rules.Evaluate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service
-public class EbayApiVerticle extends AbstractVerticle {
+public class EbayCamelService {
 
     /**
      * a request from vert.x to a camel route
@@ -97,51 +99,37 @@ public class EbayApiVerticle extends AbstractVerticle {
     private EBayRequestService eBayRequestService;    
     @Qualifier("transactionReadUncommitted")
     @Autowired
-    private TransactionTemplate transactionTemplate;
-
-    @Override
-    public void start() throws Exception {
-        super.start();
-//        vertx.eventBus().consumer(EBAY_REQUEST_VTX, message -> {
-//            System.out.println("ANNOUNCE >> " + message.body());
-//            message.reply("ok from ebay");
-//        });
-        camelContext.addRoutes(configureRoutes());
-    }
+    private TransactionTemplate transactionTemplate;  
     
     /**
      * it sets an atomic flag to allow next processing to eBay request
      * @return boolean flag
      */
     public static boolean readyToProcess() {
-        boolean readyToProcess = EbayApiVerticle.readyToProcess.get();
+        boolean readyToProcess = EbayCamelService.readyToProcess.get();
         if (readyToProcess) {
-        	EbayApiVerticle.readyToProcess.set(false);
+        	EbayCamelService.readyToProcess.set(false);
         }
         return readyToProcess;
     }
 
-    private RouteBuilder configureRoutes() {
+    public RouteBuilder configureRoutes() {
         return new RouteBuilder() {
             @SuppressWarnings("unchecked")
 			public void configure() throws Exception {
             	
-            	String requestState = "requestState";   
+            	String requestState = "requestState";
             	
-            	//camel general exception handling 
-            	onException(RuntimeCamelException.class)
-            	.log("${body}");            
-            	
-            	//root to initiate of eBay items processing via vert.x message
+//------------- Root to initiate of eBay items processing via vert.x message
                 from("vertx:" + VTX_EBAY_REQUEST)
                         .routeId(ROUTE_VTX_EBAY_REQ_BRIDGE)
                         .to("direct:processItems")
-                        .id("id_vertx_ebay_req_bridge_end");
+                        .id("id_vertx_ebay_req_bridge_end"); 
                 
-                //root to select what eBay items processing is required base don the item status
+//------------- Root to select what eBay items processing is required based on the item status
                 from("direct:processItems")
                 .routeId(ROUTE_PROCESS_EBAY_ITEMS)
-                .filter(method(EbayApiVerticle.class, "readyToProcess"))
+                .filter(method(EbayCamelService.class, "readyToProcess"))
                 .throttle(1).timePeriodMillis(10000)  //allow only one message every 10 sec
                 .process(exchange -> 
                 	exchange.getIn().setHeader(requestState, eBayRequestService.updateRequestState().toString())                )
@@ -158,7 +146,7 @@ public class EbayApiVerticle extends AbstractVerticle {
 						.otherwise()
 						.log(LoggingLevel.INFO, "no item processing this time");
 
-                //get eBay items processing
+//------------- Root to get eBay items processing
                 from("direct:remoteEbayApiGetItems")
                         .routeId(ROUTE_GET_EBAY_ITEMS)
                         .process(exchange -> {
@@ -168,7 +156,6 @@ public class EbayApiVerticle extends AbstractVerticle {
                         })
                         .log(LoggingLevel.INFO, "header.requestQuery + ${header.requestQuery}")
                         .removeHeaders("CamelHttp*") 
-//                        .setHeader(Exchange.HTTP_PATH, expression("/login"))
                         .toD("https:svcs.ebay.com/services/search/FindingService/v1?${header.requestQuery}") //simple("${header.requestUrl}").getText())                        
                         .id("id_ebay_http_call")
                         .process(exchange -> {
@@ -188,13 +175,20 @@ public class EbayApiVerticle extends AbstractVerticle {
                         .bean(evaluate)
                         .process(exchange -> {
                             ItemMongo item = exchange.getIn().getBody(ItemMongo.class);
-                            log.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());
+                            ItemMongo existingItem = itemService.findByProviderId(item.getProviderItemId(), Constants.EBAY);
+                            if(existingItem != null) {
+                            	item.setProcess(false);
+                            	item.setId(existingItem.getId());  //update item by 
+                            	item.setUpdatedOn(new Date());
+                            	itemService.save(item);
+                            }
+                            log.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());                            
                             if(item.isProcess()) itemService.save(item);
                         })
                         .filter(simple("${mandatoryBodyAs(com.arit.adserve.entity.mongo.ItemMongo).isProcess()}"))
                         .to("direct:getImage");
-                
-                //update existing items from eBay
+               
+//------------- Root to update existing items from eBay
                 from("direct:remoteEbayApiUpdateItems")
                 .routeId(ROUTE_UPDATE_EBAY_ITEMS)
                 .process(exchange -> {
@@ -226,11 +220,11 @@ public class EbayApiVerticle extends AbstractVerticle {
 									for (ItemMongo item : items) {
 										boolean delete = true;
 										for (JsonNode jsonObj : jsonArrObj) {
-											if (item.getProviderItemId().equals(jsonObj.get("ItemId")))
+											if (item.getProviderItemId().equals(jsonObj.get("ItemId").toString()))
 												delete = false;
 										}
 										item.setDeleted(delete);
-										itemService.update(item);
+										itemService.save(item);
 									}
 									return null;
 								}
@@ -240,7 +234,7 @@ public class EbayApiVerticle extends AbstractVerticle {
                 .process(exchange -> readyToProcess.set(true))
                 .log("log:updateItems");
 
-                //get item image from eBay
+//------------- Root to get an item image from eBay
                 from("direct:getImage")
                 .routeId(ROUTE_GET_EBAY_IMAGE)
                 .process(exchange -> {
@@ -255,9 +249,11 @@ public class EbayApiVerticle extends AbstractVerticle {
                             ItemMongo item = exchange.getIn().getBody(ItemMongo.class);
                             exchange.getIn().setBody(item.getGalleryURL());
                             log.info("imageURL: {}", item.getGalleryURL());
+                            exchange.getIn().setHeader("hasGalleryURL", item.getGalleryURL() != null ? true : false);
                             exchange.getIn().setHeader("providerItemId", item.getProviderItemId());
                             exchange.getIn().setHeader("providerName", item.getProviderName());
                         })
+                        .filter().simple("${header.hasGalleryURL} == true") 
                         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                         .toD("${body}")
                         .marshal().base64()

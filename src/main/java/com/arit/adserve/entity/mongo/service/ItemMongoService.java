@@ -33,7 +33,7 @@ public class ItemMongoService {
 	public Optional<ItemMongo> findById(String id) {
 		return repo.findById(id);
 	}
-
+	
 	public List<ItemMongo> findAll(int pageNumber, int rowsPerPage) {
 		List<ItemMongo> items = new ArrayList<>();
 		PageRequest sortedByLastUpdateDesc = PageRequest.of(pageNumber - 1, rowsPerPage, Sort.by("title").descending());
@@ -63,9 +63,6 @@ public class ItemMongoService {
 		return repo.save(item);
 	}
 
-	public void update(ItemMongo item) {
-		repo.save(item);
-	}
 
 	public void updateAll(Iterable<ItemMongo> items) {
 		repo.saveAll(items);

@@ -20,7 +20,6 @@ import org.springframework.test.context.ActiveProfiles;
 import com.arit.adserve.comm.Constants;
 import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.entity.mongo.repository.ItemMongoRepository;
-import com.arit.adserve.verticle.EbayApiVerticle;
 
 /**
  * Testing Camel route related to eBay processing. Route nodes responsible for
@@ -43,7 +42,7 @@ public class EBayCamelTest {
 
 	@Test
 	public void vertxRouteTest() throws Exception {
-		AdviceWithRouteBuilder.adviceWith(camelContext, EbayApiVerticle.ROUTE_VTX_EBAY_REQ_BRIDGE, a -> {
+		AdviceWithRouteBuilder.adviceWith(camelContext, EbayCamelService.ROUTE_VTX_EBAY_REQ_BRIDGE, a -> {
 			a.replaceFromWith("direct:in");
 			// weaveById() replace camel step id identified by id()
 			a.weaveById("id_vertx_ebay_req_bridge_end").replace().log("replacing call to another route");
@@ -59,7 +58,7 @@ public class EBayCamelTest {
 
 	@Test
 	public void vertxGetImageTest() throws Exception {
-		AdviceWithRouteBuilder.adviceWith(camelContext, EbayApiVerticle.ROUTE_GET_FILE_HTTP, a -> {
+		AdviceWithRouteBuilder.adviceWith(camelContext, EbayCamelService.ROUTE_GET_FILE_HTTP, a -> {
 			a.replaceFromWith("direct:in1");
 			// send the outgoing message to mock:out1
 			a.weaveAddLast().to("mock:out1");
@@ -74,19 +73,21 @@ public class EBayCamelTest {
 
 	@Test
 	public void testEbayApiGetItems() throws Exception {
-		AdviceWithRouteBuilder.adviceWith(camelContext, EbayApiVerticle.ROUTE_PROCESS_EBAY_ITEMS, a -> {
+		AdviceWithRouteBuilder.adviceWith(camelContext, EbayCamelService.ROUTE_PROCESS_EBAY_ITEMS, a -> {
 			a.weaveAddLast().to("mock:out2");
 		});
 		camelContext.start();
 		MockEndpoint mockOut = camelContext.getEndpoint("mock:out2", MockEndpoint.class);
-		mockOut.expectedMessageCount(2);
-		template.sendBody("direct:processItems", "init");
-		template.sendBody("direct:processItems", "init");		
+		mockOut.expectedMessageCount(20);
+		for (int i = 0; i < 20; i++) {
+			template.sendBody("direct:processItems", "init");
+		}			
 		mockOut.assertIsSatisfied();
 	}
 	
 	@Test
 	public void testEbayApiUpdateItems() throws Exception {
+		itemRepository.deleteAll();
 		LocalDate localDate = LocalDate.now().minusDays(2);
 		Date date = java.util.Date.from(localDate.atStartOfDay()
 			      .atZone(ZoneId.systemDefault())
@@ -106,7 +107,7 @@ public class EBayCamelTest {
 	        item1.setUpdatedOn(date);
 	        itemRepository.save(item1);
 	        
-		AdviceWithRouteBuilder.adviceWith(camelContext, EbayApiVerticle.ROUTE_UPDATE_EBAY_ITEMS, a -> {
+		AdviceWithRouteBuilder.adviceWith(camelContext, EbayCamelService.ROUTE_UPDATE_EBAY_ITEMS, a -> {
 			a.weaveAddLast().to("mock:out3");
 		});
 		camelContext.start();
