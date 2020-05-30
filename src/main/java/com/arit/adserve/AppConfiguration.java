@@ -14,6 +14,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.arit.adserve.comm.SpringUtil;
 import com.arit.adserve.providers.ebay.EbayCamelService;
 import com.arit.adserve.verticle.ItemOpenApiVerticle;
 import com.arit.adserve.verticle.ItemVerticle;
@@ -35,16 +36,15 @@ public class AppConfiguration {
 	private Vertx vertx = Vertx.vertx();
 
 	@Autowired
-	private ApplicationContext applicationContext;
+	private SpringUtil springUtil;
 	
 	@Autowired
 	private EbayCamelService ebayCamelService;
 
-
 	public void deployVerticles() {
 		DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);		
-		vertx.deployVerticle(applicationContext.getBean(ItemOpenApiVerticle.class));
-		vertx.deployVerticle(applicationContext.getBean(ItemVerticle.class), optionsWorker);
+		vertx.deployVerticle(SpringUtil.getBean(ItemOpenApiVerticle.class));
+		vertx.deployVerticle(SpringUtil.getBean(ItemVerticle.class), optionsWorker);
 	}
 
 	@Bean

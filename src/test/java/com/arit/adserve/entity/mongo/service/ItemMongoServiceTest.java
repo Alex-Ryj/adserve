@@ -1,10 +1,6 @@
 package com.arit.adserve.entity.mongo.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -16,6 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.arit.adserve.comm.Constants;
@@ -35,10 +33,10 @@ class ItemMongoServiceTest {
 	@Autowired
 	ItemMongoRepository repo;
 
-	static String itemId1 = null;
-	static String itemId2 = null;
-	static String providerItemId1 = "id1";
-	static String providerItemId2 = "id2";
+	static String itemId = null;
+	static String providerItemId = "id";
+	static String localProviderItemId = "otherId";
+	static String localProviderName = "local_provider";
 
 	private static boolean setUpIsDone = false;
 	
@@ -48,80 +46,96 @@ class ItemMongoServiceTest {
 		if (setUpIsDone)
 			return;
 		repo.deleteAll();
-		ItemMongo item1 = new ItemMongo();		
-		item1.setProviderItemId(providerItemId1);
-		item1.setTitle("title");
-		item1.setProviderName(Constants.EBAY);
-		item1.setViewItemURL("http://viewItemURL.com");
-		item1 = service.save(item1);
-		itemId1 = item1.getId();
-		log.info("item id: {}", itemId1);
+		for (int i = 0; i < 30; i++) {
+			ItemMongo item = new ItemMongo();		
+			item.setProviderItemId(providerItemId + i);
+			item.setTitle("title" + i);
+			item.setProviderName(Constants.EBAY);
+			item.setViewItemURL("http://viewItemURL.com" + i);
+			item = service.save(item);			
+		}
+		
 		ItemMongo item2 = new ItemMongo();
 
-		item2.setProviderItemId(providerItemId2);
-		item2.setProviderName(Constants.EBAY);
+		item2.setProviderItemId(localProviderItemId);
+		item2.setProviderName(localProviderName);
 		item2.setTitle("title1");
 		item2.setViewItemURL("http://viewItemURL.com");
 		item2 = service.save(item2);
-		itemId2 = item2.getId();
+		itemId = item2.getId();
 		setUpIsDone = true;
 	}
 
 
 	@Test
 	void testFindById() {
-		assertTrue(service.findById(itemId1).isPresent());
+		assertTrue(service.findById(itemId).isPresent());
 	}
 
 	@Test
 	void testFindAll() {
-		assertEquals(2, service.findAll(1, 10).size());
+		assertEquals(10, service.findAll(1, 10).size());
 	}
 
 	@Test
 	void testFindAllById() {
-		assertTrue(service.findAllById(Arrays.asList(itemId1, itemId2)).iterator().hasNext());
+		assertTrue(service.findAllById(Arrays.asList(itemId)).iterator().hasNext());
 	}
 
 	@Test
 	void testCount() {
-		assertEquals(2, service.count());
+		assertEquals(31, service.count());
 	}
 
 	@Test
 	void testCountItemsUpdatedAfter() {
 		LocalDate localDate = LocalDate.now().minusDays(1);
 		Date date = java.util.Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-		assertEquals(2, service.countItemsUpdatedAfter(date, Constants.EBAY));
+		assertEquals(30, service.countItemsUpdatedAfter(date, Constants.EBAY));
 	}
 
 	@Test
 	void testHasImage() {
-		assertFalse(service.hasImage(providerItemId1, Constants.EBAY));
+		assertFalse(service.hasImage(localProviderItemId, localProviderName));
 	}
 
 	@Test
 	void testGetItemsFromProviderBefore() {
 		List<ItemMongo> result = service.getItemsFromProviderBefore(new Date(), Constants.EBAY, 10);
-		assertEquals(2, result.size());
+		assertEquals(10, result.size());
 	}
 	
 	@Test
-	void findAllByProviderIds() throws Exception {
-		assertTrue(service.findAllByProviderIds(Arrays.asList(providerItemId1), Constants.EBAY).iterator().hasNext());
-		 
+	void testFindAllByProviderIds() throws Exception {
+		assertTrue(service.findAllByProviderIds(Arrays.asList(localProviderItemId), localProviderName).iterator().hasNext());		 
 	}
 	
 	@Test
-	void findByProviderId() throws Exception {
-		ItemMongo item = service.findByProviderId(providerItemId1, Constants.EBAY);
+	void testFindByProviderId() throws Exception {
+		ItemMongo item = service.findByProviderId(localProviderItemId, Constants.EBAY);
 		assertNotNull(item);
 	}
 	
 	@Test
-	void findByProviderIdNotFound() throws Exception {
+	void testFindByProviderIdNotFound() throws Exception {
 		ItemMongo item = service.findByProviderId("non_exisitng_id", Constants.EBAY);
 		assertNull(item);
+	}
+	
+	@Test
+	void testFindAllByProvider() throws Exception {
+		PageRequest reqSorted = PageRequest.of(1, 2, Sort.by("title").descending());
+		var items = service.findAllByProvider(Constants.EBAY, reqSorted);
+		assertEquals(2, items.size());
+		for (ItemMongo item : items) {
+			log.info(item.getTitle());
+		}
+		 reqSorted = PageRequest.of(2, 2, Sort.by("title").descending());
+		items = service.findAllByProvider(Constants.EBAY, reqSorted);
+		assertEquals(2, items.size());
+		for (ItemMongo item : items) {
+			log.info(item.getTitle());
+		}
 	}
 
 

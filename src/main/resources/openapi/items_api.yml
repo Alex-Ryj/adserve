@@ -1,37 +1,100 @@
-openapi: '3.0.2'
+openapi: "3.0.2"
 info:
   title: API Title
-  version: '1.0'
+  version: "1.0"
 servers:
   - url: http://localhost:8080/v1
 paths:
   /items/item/{providerName}/{providerItemId}:
     get:
-      summary: an item 
+      summary: an item
       operationId: getItem
       x-vertx-event-bus: items_manager.adserve
       tags:
-        - item    
+        - item
       parameters:
         - name: providerName
           in: path
           description: provider name of the item
           required: true
           schema:
-            type: string  
+            type: string
         - name: providerItemId
           in: path
           description: provider item id
           required: true
           schema:
-            type: string               
+            type: string
       responses:
-        '200':
+        "200":
           description: OK - Expected response to a valid request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Item"
+  /items/item/{providerName}:
+    get:
+      summary: a list of item from a provider
+      operationId: getItems
+      x-vertx-event-bus: items_manager.adserve
+      tags:
+        - items
+      parameters:
+        - name: providerName
+          in: path
+          description: provider name of the item
+          required: true
+          schema:
+            type: string
+        - name: providerItemIds
+          in: query
+          description: provider item ids
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: OK - Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Items"
+  /items/item/page/{providerName}:
+    get:
+      summary: a list of item from a provider
+      operationId: getItemsByPage
+      x-vertx-event-bus: items_manager.adserve
+      tags:
+        - items
+      parameters:
+        - name: providerName
+          in: path
+          description: provider name of the item
+          required: true
+          schema:
+            type: string
+        - name: pageNum
+          in: query
+          description: required data page
+          required: true
+          schema:
+            type: integer
+        - name: itemsPerPage
+          in: query
+          description: required number of items per page
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK - Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Items"
+
 components:
   schemas:
     Item:
@@ -49,7 +112,7 @@ components:
         relevance:
           type: integer
           format: int64
-        title: 
+        title:
           type: string
         viewItemURL:
           type: string
@@ -57,7 +120,7 @@ components:
           type: array
           items:
             type: string
-        description: 
+        description:
           type: string
         location:
           type: string
@@ -67,9 +130,9 @@ components:
           type: string
         currency:
           type: string
-        price: 
+        price:
           type: integer
-          format: int32
+          format: int64
         priceFormatted:
           type: string
         source:
@@ -86,7 +149,7 @@ components:
           type: boolean
         deleted:
           type: boolean
-        rank: 
+        rank:
           type: integer
           format: int64
         createdOn:
@@ -94,11 +157,26 @@ components:
           format: date-time
         updatedOn:
           type: string
-          format: date-time        
+          format: date-time
+
     Items:
       type: array
       items:
         $ref: "#/components/schemas/Item"
+
+    ItemsPage:
+      type: object
+      required:
+        - totalCount
+        - pageNum
+      properties:
+        totalCount:
+          type: integer
+        page:
+          type: integer
+        items:
+          $ref: "#/components/schemas/Items"
+
     Error:
       type: object
       required:
@@ -109,7 +187,8 @@ components:
           type: integer
           format: int32
         message:
-          type: string
+          type: string  
+          
   securitySchemes:
     api_key:
       type: apiKey
