@@ -5,9 +5,9 @@ info:
 servers:
   - url: http://localhost:8080/v1
 paths:
-  /items/item/{providerName}/{providerItemId}:
+  /items/provider/{providerName}/{providerItemId}:
     get:
-      summary: an item
+      summary: an item from the provider
       operationId: getItem
       x-vertx-event-bus: items_manager.adserve
       tags:
@@ -34,7 +34,7 @@ paths:
                 $ref: "#/components/schemas/Item"
   /items/item/{providerName}:
     get:
-      summary: a list of item from a provider
+      summary: a list of items from a provider from submitted item ids
       operationId: getItems
       x-vertx-event-bus: items_manager.adserve
       tags:
@@ -61,9 +61,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Items"
-  /items/item/page/{providerName}:
+  /items/page/{providerName}:
     get:
-      summary: a list of item from a provider
+      summary: a list of item from a provider by page
       operationId: getItemsByPage
       x-vertx-event-bus: items_manager.adserve
       tags:
@@ -75,6 +75,18 @@ paths:
           required: true
           schema:
             type: string
+        - name: sortedField
+          in: query
+          description: the item field to sort
+          required: true
+          schema:
+            type: string  
+        - name: sortedDesc
+          in: query
+          description: the item field to sort
+          required: true
+          schema:
+            type: boolean                      
         - name: pageNum
           in: query
           description: required data page

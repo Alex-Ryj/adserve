@@ -1,5 +1,10 @@
 package com.arit.adserve.verticle;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import org.apache.commons.collections4.FactoryUtils;
 import org.springframework.stereotype.Service;
 
 import com.arit.adserve.verticle.service.ItemVtxService;
@@ -10,12 +15,16 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.api.RequestParameters;
+import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.serviceproxy.ServiceBinder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,24 +57,24 @@ public class ItemOpenApiVerticle extends AbstractVerticle {
 	    OpenAPI3RouterFactory.create(this.vertx, "openapi/items_api.yml", ar -> {
 	        if (ar.succeeded()) {
 	            OpenAPI3RouterFactory routerFactory = ar.result();
+	            Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList( HttpMethod.GET, HttpMethod.POST, 
+	            		HttpMethod.PUT, HttpMethod.DELETE));
+	            Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("Access-Control-Request-Method",
+	            		//"Access-Control-Allow-Credentials",
+	            		"Access-Control-Allow-Origin",
+	            		"Access-Control-Allow-Headers",
+	            		"Content-Type"));
+	          
+	            //local Angular testing
+	            routerFactory.addGlobalHandler(CorsHandler.create("http://localhost:\\d+").allowedMethods(allowedMethods).allowedHeaders(allowedHeaders));
 	            routerFactory.mountServicesFromExtensions();
-//	            routerFactory.addHandlerByOperationId("getItem", routingContext -> {
-//	              RequestParameters params = routingContext.get("parsedParameters"); 	
-//	              routingContext
-//	                .response() 
-//	                .setStatusCode(200)
-//	                .putHeader(HttpHeaders.CONTENT_TYPE, "application/json") 
-//	                .end(new JsonObject().put("providerItemId", "providerItemId")
-//	                		.put("providerName", "providerName")
-////	                		.put("title", "title")
-//	                		.put("viewItemURL", "viewItemURL")
-//	                		.put("key", "value").encode());
-//	            });
+
 	            routerFactory.addSecurityHandler("api_key", routingContext -> {
 	              // Handle security here
 	              routingContext.next();
-	            });	           
-	            Router router = routerFactory.getRouter();
+	            });	         
+	            
+	            Router router = routerFactory.getRouter();  
 	            router.errorHandler(404, routingContext -> { 
 	              JsonObject errorObject = new JsonObject() 
 	                .put("code", 404)
@@ -96,6 +105,7 @@ public class ItemOpenApiVerticle extends AbstractVerticle {
 	            });
 
 	            server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost")); 
+	            server.exceptionHandler(ex -> log.error("Http server exception handler.", ex));
 	            server.requestHandler(router).listen(); 
 	            
 	            promise.complete(); // Complete the verticle start

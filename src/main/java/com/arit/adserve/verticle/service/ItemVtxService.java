@@ -16,7 +16,7 @@ public interface ItemVtxService {
 
 	void getItems(String providerName, List<String> providerItemIds,  OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
-	void getItemsByPage(String providerName, int pageNum, int itemsPerPage, String sortedField,  OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
+	void getItemsByPage(String providerName, String sortedField, boolean sortedDesc, int pageNum, int itemsPerPage, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
 	/**
 	 * Factory method to instantiate the implementation

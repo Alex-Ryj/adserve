@@ -50,7 +50,7 @@ public class ItemVtxServiceImpl implements ItemVtxService {
 			ItemMongo item = itemService.findByProviderId(providerItemId, providerName);
 			resultHandler.handle(Future.succeededFuture(OperationResponse.completedWithJson(JsonObject.mapFrom(item))));
 			future.complete();
-		}, ar -> log.info("result handler"));
+		}, ar -> log.info("result handler getItem"));
 	}
 
 	@Override
@@ -65,20 +65,25 @@ public class ItemVtxServiceImpl implements ItemVtxService {
 			}
 			resultHandler.handle(Future.succeededFuture(OperationResponse.completedWithJson(array)));
 			future.complete();
-		}, ar -> log.info("result handler"));
-
+		}, ar -> log.info("result handler getItems"));
 	}
 
 	@Override
-	public void getItemsByPage(String providerName, int pageNum, int itemsPerPage, String sortedField, OperationRequest context,
+	public void getItemsByPage(String providerName, String sortedField, boolean sortedDesc, int pageNum, int itemsPerPage, OperationRequest context,
 			Handler<AsyncResult<OperationResponse>> resultHandler) {
 		vertx.executeBlocking(future -> {
 			log.info("recieved {} - page: {}, items per page {}", providerName, pageNum, itemsPerPage);
-			PageRequest reqSorted = PageRequest.of(pageNum, itemsPerPage,Sort.by(sortedField).descending());
+			Sort sort =  Sort.by(sortedField);
+			if(sortedDesc) sort = sort.descending();
+			PageRequest reqSorted = PageRequest.of(pageNum, itemsPerPage, sort);
 			Iterable<ItemMongo> items = itemService.findAllByProvider(providerName, reqSorted);
-			resultHandler.handle(Future.succeededFuture(OperationResponse.completedWithJson(JsonObject.mapFrom(items))));
+			JsonArray array = new JsonArray();
+			for (ItemMongo item : items) {
+				array.add(JsonObject.mapFrom(item));
+			}
+			resultHandler.handle(Future.succeededFuture(OperationResponse.completedWithJson(array)));
 			future.complete();
-		}, ar -> log.info("result handler"));
+		}, ar -> log.info("result handler getItemsByPage"));
 		
 	}
 }
