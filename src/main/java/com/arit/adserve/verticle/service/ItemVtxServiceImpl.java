@@ -77,11 +77,16 @@ public class ItemVtxServiceImpl implements ItemVtxService {
 			if(sortedDesc) sort = sort.descending();
 			PageRequest reqSorted = PageRequest.of(pageNum, itemsPerPage, sort);
 			Iterable<ItemMongo> items = itemService.findAllByProvider(providerName, reqSorted);
+			long count = itemService.countByProvider(providerName);			
 			JsonArray array = new JsonArray();
 			for (ItemMongo item : items) {
 				array.add(JsonObject.mapFrom(item));
 			}
-			resultHandler.handle(Future.succeededFuture(OperationResponse.completedWithJson(array)));
+			JsonObject jsonObj = new JsonObject()
+					.put("pageNum", pageNum)
+					.put("totalCount", count)
+					.put("items", array);
+			resultHandler.handle(Future.succeededFuture(OperationResponse.completedWithJson(jsonObj)));
 			future.complete();
 		}, ar -> log.info("result handler getItemsByPage"));
 		

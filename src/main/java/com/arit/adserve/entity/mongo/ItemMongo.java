@@ -18,10 +18,12 @@ import javax.persistence.Version;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.NumericField;
+import org.hibernate.search.annotations.Store;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -53,6 +55,7 @@ import lombok.ToString;
 public class ItemMongo {	
 	
 	@Id
+	@org.hibernate.search.annotations.Field(analyze = Analyze.NO, store = Store.YES)
 	private String id;
 	
 	@NotBlank(message = "providerItemId is mandatory")

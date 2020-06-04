@@ -105,7 +105,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Items"
+                $ref: "#/components/schemas/ItemsPage"
 
 components:
   schemas:
@@ -117,6 +117,8 @@ components:
         - title
         - viewItemURL
       properties:
+        id:
+          type: string
         providerItemId:
           type: string
         providerName:
@@ -184,7 +186,7 @@ components:
       properties:
         totalCount:
           type: integer
-        page:
+        pageNum:
           type: integer
         items:
           $ref: "#/components/schemas/Items"
