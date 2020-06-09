@@ -87,8 +87,7 @@ public class EbayCamelService {
     
     private static final AtomicBoolean readyToProcess = new AtomicBoolean(true);
     
-    @Autowired
-    private CamelContext camelContext;
+ 
     @Autowired
     private ItemJsonConvert convert;
     @Autowired

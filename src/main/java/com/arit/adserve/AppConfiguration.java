@@ -18,6 +18,7 @@ import com.arit.adserve.comm.SpringUtil;
 import com.arit.adserve.providers.ebay.EbayCamelService;
 import com.arit.adserve.verticle.ItemOpenApiVerticle;
 import com.arit.adserve.verticle.ItemVerticle;
+import com.arit.adserve.verticle.SchedulerVericle;
 
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -33,22 +34,20 @@ import lombok.extern.slf4j.Slf4j;
 @EnableTransactionManagement
 public class AppConfiguration {
 
-	private Vertx vertx = Vertx.vertx();
-
-	@Autowired
-	private SpringUtil springUtil;
+	private Vertx vertx = Vertx.vertx();	
 	
-	@Autowired
-	private EbayCamelService ebayCamelService;
-
+	/**
+	 * to deploy all verticles as spring beans
+	 */
 	public void deployVerticles() {
 		DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);		
 		vertx.deployVerticle(SpringUtil.getBean(ItemOpenApiVerticle.class));
 		vertx.deployVerticle(SpringUtil.getBean(ItemVerticle.class), optionsWorker);
+		vertx.deployVerticle(SpringUtil.getBean(SchedulerVericle.class), optionsWorker);
 	}
 
 	@Bean
-	public CamelContextConfiguration contextConfiguration() {
+	public CamelContextConfiguration contextConfiguration(EbayCamelService ebayCamelService) {
 		return new CamelContextConfiguration() {
 			@Override
 			public void beforeApplicationStart(CamelContext context) {
