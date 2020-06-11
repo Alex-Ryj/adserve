@@ -3,32 +3,25 @@ package com.arit.adserve.entity.mongo;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-import javax.persistence.Version;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
-import org.hibernate.search.annotations.Analyze;
-import org.hibernate.search.annotations.DocumentId;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.NumericField;
-import org.hibernate.search.annotations.Store;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
-import org.springframework.data.mongodb.core.mapping.Document;
-
-import com.arit.adserve.entity.ItemId;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.IntField;
+import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.SortedNumericDocValuesField;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.util.BytesRef;
+import org.apache.poi.xssf.usermodel.TextFontAlign;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -47,53 +40,35 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@Indexed
-@Document
 @CompoundIndexes({
     @CompoundIndex(name = "provider_itemId", def = "{'providerName' : 1, 'providerItemId': 1}")
 })
 public class ItemMongo {	
 	
 	@Id
-	@org.hibernate.search.annotations.Field(analyze = Analyze.NO, store = Store.YES)
-	private String id;
-	
+	private String id;	
 	@NotBlank(message = "providerItemId is mandatory")
-	private String providerItemId;
-	
+	private String providerItemId;	
 	@NotBlank(message = "providerName is mandatory")
-	private String providerName;
-	
-	private Integer relevance;
-	@DocumentId(name = "item_doc_id")
-	private String docId;
-	@org.hibernate.search.annotations.Field
+	private String providerName;	
+	private Integer relevance;	
 	@NotBlank(message = "title is mandatory")
 	private String title;
 	@NotBlank(message = "viewItemURL is mandatory")
 	@Size(min = 15)
-	private String viewItemURL;
-	
+	private String viewItemURL;	
 	private Set<String> subTitles = new HashSet<>();
-	@org.hibernate.search.annotations.Field
 	private String description;
-	@org.hibernate.search.annotations.Field
 	private String location;
-	@org.hibernate.search.annotations.Field
 	private String country;
-	@org.hibernate.search.annotations.Field
 	private String condition;
-	@org.hibernate.search.annotations.Field
 	private String currency;
-	@org.hibernate.search.annotations.Field @org.hibernate.search.annotations.NumericField
 	private int price;  //the price in cents, pence, kopecks etc.
 	private String source;
 	private String productId;
 	private String galleryURL;
-	private String priceFormatted;
-	
-	private String image64BaseStr;
-	
+	private String priceFormatted;	
+	private String image64BaseStr;	
 	private String modifiedImage64BaseStr;
 	private Date modifiedImageDate;	
 	private boolean process;
@@ -101,5 +76,21 @@ public class ItemMongo {
 	private int rank;
 	private Date createdOn = new Date();
 	private Date updatedOn = new Date();
+	
+	/**
+	 * @return lucene document for indexing
+	 */
+	public Document getLuceneDocument() {
+		 Document document = new Document();
+		 document.add(new StoredField("id", this.id));
+		 document.add(new StringField("providerName", this.providerName, Field.Store.NO));
+		 document.add(new StringField("country", this.country, Field.Store.NO));
+         document.add(new TextField("title", this.title, Field.Store.NO));
+         document.add(new TextField("subTitles", this.subTitles.stream().collect(Collectors.joining(" ")), Field.Store.NO));
+         document.add(new TextField("description", this.description, Field.Store.NO));
+         document.add(new IntField("price", this.price, Field.Store.NO));
+         document.add(new SortedNumericDocValuesField("rank", this.rank));         
+         return document;		
+	}
 	
 }

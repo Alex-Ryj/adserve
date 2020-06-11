@@ -2,6 +2,7 @@ package com.arit.adserve.entity.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -36,28 +37,34 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LuceneSearchService {
 	
-	   private Directory memoryIndex  = new RAMDirectory();	  
+	   private Directory indexStore  = new RAMDirectory();	  
 	   
 	   /**
 	     * 
 	     * @param title
 	     * @param body
 	     */
-	    public void indexDocument(String title, String body, Analyzer analyzer) {
+	    public void indexDocument(Document doc, Analyzer analyzer) {
 
 	        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
 	        try {
-	            IndexWriter writter = new IndexWriter(memoryIndex, indexWriterConfig);
-	            Document document = new Document();
-
-	            document.add(new TextField("title", title, Field.Store.YES));
-	            document.add(new TextField("body", body, Field.Store.YES));
-	            document.add(new SortedDocValuesField("title", new BytesRef(title)));
-
-	            writter.addDocument(document);
+	            IndexWriter writter = new IndexWriter(indexStore, indexWriterConfig);  
+	            writter.addDocument(doc);
 	            writter.close();
 	        } catch (IOException e) {
 	            log.error("index document", e);
+	        }
+	    }
+	    
+	    public void updateDocument(Document doc, Analyzer analyzer) {
+	    	IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
+	        try {
+	            IndexWriter writter = new IndexWriter(indexStore, indexWriterConfig); 
+	            Term term = new Term("id", doc.get("id"));
+	            writter.updateDocument(term, doc);
+	            writter.close();
+	        } catch (IOException e) {
+	            log.error("update document", e);
 	        }
 	    }
 
@@ -65,7 +72,7 @@ public class LuceneSearchService {
 	        try {
 	            Query query = new QueryParser(inField, analyzer).parse(queryString);
 
-	            IndexReader indexReader = DirectoryReader.open(memoryIndex);
+	            IndexReader indexReader = DirectoryReader.open(indexStore);
 	            IndexSearcher searcher = new IndexSearcher(indexReader);
 	            TopDocs topDocs = searcher.search(query, 10);
 	            List<Document> documents = new ArrayList<>();
@@ -77,14 +84,14 @@ public class LuceneSearchService {
 	        } catch (IOException | ParseException e) {
 	        	log.error("search index", e);
 	        }
-	        return null;
+	        return Collections.emptyList();
 
 	    }
 
 	    public void deleteDocument(Term term, Analyzer analyzer) {
 	        try {
 	            IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
-	            IndexWriter writter = new IndexWriter(memoryIndex, indexWriterConfig);
+	            IndexWriter writter = new IndexWriter(indexStore, indexWriterConfig);
 	            writter.deleteDocuments(term);
 	            writter.close();
 	        } catch (IOException e) {
@@ -92,11 +99,11 @@ public class LuceneSearchService {
 	        }
 	    }
 
-	    public List<Document> searchIndex(Query query) {
+	    public List<Document> searchIndex(Query query, int numOfDocs) {
 	        try {
-	            IndexReader indexReader = DirectoryReader.open(memoryIndex);
+	            IndexReader indexReader = DirectoryReader.open(indexStore);
 	            IndexSearcher searcher = new IndexSearcher(indexReader);
-	            TopDocs topDocs = searcher.search(query, 10);
+	            TopDocs topDocs = searcher.search(query, numOfDocs);
 	            List<Document> documents = new ArrayList<>();
 	            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 	                documents.add(searcher.doc(scoreDoc.doc));
@@ -106,13 +113,13 @@ public class LuceneSearchService {
 	        } catch (IOException e) {
 	        	log.error("search index", e);
 	        }
-	        return null;
+	        return Collections.emptyList();
 
 	    }
 
 	    public List<Document> searchIndex(Query query, Sort sort) {
 	        try {
-	            IndexReader indexReader = DirectoryReader.open(memoryIndex);
+	            IndexReader indexReader = DirectoryReader.open(indexStore);
 	            IndexSearcher searcher = new IndexSearcher(indexReader);
 	            TopDocs topDocs = searcher.search(query, 10, sort);
 	            List<Document> documents = new ArrayList<>();
@@ -124,7 +131,7 @@ public class LuceneSearchService {
 	        } catch (IOException e) {
 	        	log.error("search index", e);
 	        }
-	        return null;
+	        return Collections.emptyList();
 
 	    }
 

@@ -1,11 +1,19 @@
 package com.arit.adserve.entity.mongo.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.queries.TermsQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
@@ -13,10 +21,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.entity.mongo.repository.ItemMongoRepository;
+import com.arit.adserve.entity.service.LuceneSearchService;
 
 /**
  * @author Alex Ryjoukhine
@@ -34,9 +44,11 @@ public class ItemMongoService {
 
 	@Autowired
 	private MongoOperations mongoOps;
-
 	@Autowired
-	private ItemMongoRepository repo;	
+	private ItemMongoRepository repo;		
+	@Autowired
+	private LuceneSearchService searchService;
+	private Analyzer analyzer = new StandardAnalyzer();
 	
 	
 
@@ -80,16 +92,22 @@ public class ItemMongoService {
 	}
 
 	public ItemMongo save(ItemMongo item) {
-		return repo.save(item);
+		var savedItem = repo.save(item);
+		searchService.indexDocument(savedItem.getLuceneDocument(), analyzer);
+		return savedItem;
 	}
 
 
-	public void updateAll(Iterable<ItemMongo> items) {
-		repo.saveAll(items);
+	public void updateAll(Iterable<ItemMongo> items) {		
+		var saveditems = repo.saveAll(items);
+for (ItemMongo itemMongo : saveditems) {
+	searchService.indexDocument(itemMongo.getLuceneDocument(), analyzer);
+		}
 	}
 
 	public void deleteById(String id) {
 		repo.deleteById(id);
+		searchService.deleteDocument(new Term("id", id), analyzer);
 	}
 
 	public Long count() {
@@ -124,5 +142,28 @@ public class ItemMongoService {
 				Criteria.where(UPDATED_ON).lte(date).and(PROVIDER_NAME).is(providerName).and(DELETED).is(false))
 				.limit(limit).with(Sort.by(UPDATED_ON).descending());
 		return mongoOps.find(query, ItemMongo.class);
+	}
+	
+	/**
+	 * @param terms
+	 * @param numOfDocs
+	 * @param docsPerPage
+	 * @param pageNum
+	 * @return Pair<TotalNumberOfItems, itemsListForPage>
+	 */
+	public Pair<Integer, List<ItemMongo>> findBySearch(Map<String,String> terms, int numOfDocs, int docsPerPage, int pageNum) {
+		List<Term> searchTerms = new ArrayList<>();
+		for(Entry<String, String> entry : terms.entrySet()) {					
+			Term term = new Term(entry.getKey(), entry.getValue());
+			searchTerms.add(term);
+		}
+		TermsQuery query = new TermsQuery(searchTerms);
+		List<Document> docs = searchService.searchIndex(query, numOfDocs);
+		long totalDocs = docs.size();
+		List<Document> docsByPage = Collections.emptyList();
+		if(totalDocs > 0 && totalDocs>(pageNum-1)*docsPerPage) {
+			docsByPage = docs.subList((pageNum-1)*docsPerPage, pageNum*docsPerPage);
+		}
+		return null;
 	}
 }
