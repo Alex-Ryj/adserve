@@ -3,8 +3,6 @@ package com.arit.adserve.providers.ebay;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.arit.adserve.comm.Constants;
 import com.arit.adserve.comm.ItemJsonConvert;
-import com.arit.adserve.entity.Item;
-import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -29,18 +24,7 @@ public class ItemJsonConvertTest {
 
 	@Value("classpath:eBay/eBayGetMultipleItemsResponse.json")
 	Resource ebayGetMultipleItemsRespFile;
-	
-	@Autowired
-	ItemJsonConvert convert;
 
-	@Test
-	public void testItemConvert() throws Exception {
-     	Item item = convert.getEbayItem(strJsonItem);
-		assertEquals("303220686589", item.getProviderItemId());	
-		assertEquals("Drone X Pro Foldable Quadcopter WIFI FPV 720P Wide-Angle HD Camera 3 Batteries", item.getTitle());
-		assertEquals("https://thumbs2.ebaystatic.com/m/mV9DBtlnOOw9Eb5u8CNfgyA/140.jpg", item.getGalleryURL());
-		assertEquals(5839, item.getPrice());
-	}
 	
 	@Test
 	public void testEbayFindResponse() throws Exception {
@@ -50,27 +34,6 @@ public class ItemJsonConvertTest {
 		assertEquals(Long.valueOf(1000), Long.valueOf(jsonObj.get("totalEntries").get(0).asText()));
 		assertEquals(Long.valueOf(1), Long.valueOf(jsonObj.get("pageNumber").get(0).asText()));
 		assertEquals(Long.valueOf(3), Long.valueOf(jsonObj.get("entriesPerPage").get(0).asText()));		
-	}
-	
-	@Test
-	public void testName() throws Exception {
-		
-	}
-	
-	@Test
-	public void testEbayGetMultipleResponse() throws Exception {
-		String jsonStr = new String(Files.readAllBytes(ebayGetMultipleItemsRespFile.getFile().toPath()));
-		Item item1 = new Item();
-		item1.setProviderItemId("313073812382");
-		item1.setProviderName(Constants.EBAY);
-		Item item2 = new Item();
-		item2.setProviderItemId("1");
-		item2.setProviderName(Constants.EBAY);
-		List<Item> items = new ArrayList<>();
-		items.add(item1);
-		items.add(item2);
-		var updatedItems = convert.updateEbayItems(jsonStr, items);
-		assertEquals(1, ((List) updatedItems).size());
 	}
 	
 	@Test

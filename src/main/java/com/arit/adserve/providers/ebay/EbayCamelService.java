@@ -2,21 +2,15 @@ package com.arit.adserve.providers.ebay;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
-import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.lucene.index.ExitableDirectoryReader.ExitingReaderException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -26,16 +20,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.arit.adserve.comm.Constants;
 import com.arit.adserve.comm.ItemJsonConvert;
-import com.arit.adserve.entity.Item;
-import com.arit.adserve.entity.ItemId;
 import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.entity.mongo.service.ItemMongoService;
-import com.arit.adserve.entity.service.ItemServiceImpl;
 import com.arit.adserve.rules.Evaluate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
@@ -119,13 +109,13 @@ public class EbayCamelService {
             	
             	String requestState = "requestState";
             	
-//------------- Root to initiate of eBay items processing via vert.x message
+//------------- Route to initiate of eBay items processing via vert.x message
                 from("vertx:" + VTX_EBAY_REQUEST)
                         .routeId(ROUTE_VTX_EBAY_REQ_BRIDGE)
                         .to("direct:processItems")
                         .id("id_vertx_ebay_req_bridge_end"); 
                 
-//------------- Root to select what eBay items processing is required based on the item status
+//------------- Route to select what eBay items processing is required based on the item status
                 from("direct:processItems")
                 .routeId(ROUTE_PROCESS_EBAY_ITEMS)
                 .filter(method(EbayCamelService.class, "readyToProcess"))
@@ -145,15 +135,14 @@ public class EbayCamelService {
 						.otherwise()
 						.log(LoggingLevel.INFO, "no item processing this time");
 
-//------------- Root to get eBay items processing
+//------------- Route to get eBay items processing
                 from("direct:remoteEbayApiGetItems")
                         .routeId(ROUTE_GET_EBAY_ITEMS)
                         .process(exchange -> {
                         	String requestQuery = eBayRequestService.getFindRequestQuery();
-                        	log.info("requestQuery: {}", requestQuery);
                         	exchange.getIn().setHeader("requestQuery", requestQuery);
                         })
-                        .log(LoggingLevel.INFO, "header.requestQuery + ${header.requestQuery}")
+                        .log(LoggingLevel.INFO, "header.requestQuery: ${header.requestQuery}")
                         .removeHeaders("CamelHttp*") 
                         .toD("https:svcs.ebay.com/services/search/FindingService/v1?${header.requestQuery}") //simple("${header.requestUrl}").getText())                        
                         .id("id_ebay_http_call")
@@ -164,6 +153,7 @@ public class EbayCamelService {
                     		long itemsTotalInRequest = Long.parseLong(jsonObj.get("totalEntries").get(0).asText());
                     		long pageNumber = Long.parseLong(jsonObj.get("pageNumber").get(0).asText());
                     		long itemsPerPage = Long.parseLong(jsonObj.get("entriesPerPage").get(0).asText());  
+                    		log.info("updateing request pageNum {}, itemsPerPage {}, itemsTotalInRequest {}, pagesTotal {}", pageNumber, itemsPerPage, itemsTotalInRequest, pagesTotal);
                     		eBayRequestService.updateEbayFindRequest(pageNumber, itemsPerPage, itemsTotalInRequest, pagesTotal);
                     		exchange.getIn().setBody(new ObjectMapper().readTree(jsonResp));  //TODO: preserve original exchange as JSON object in camel 3.3
                         })
@@ -173,21 +163,22 @@ public class EbayCamelService {
                         .bean(convert, "getEbayItemMongo")
                         .bean(evaluate)
                         .process(exchange -> {
-                            ItemMongo item = exchange.getIn().getBody(ItemMongo.class);
-                            ItemMongo existingItem = itemService.findByProviderId(item.getProviderItemId(), Constants.EBAY);
-                            if(existingItem != null) {
-                            	item.setProcess(false);
-                            	item.setId(existingItem.getId());  //update item by 
-                            	item.setUpdatedOn(new Date());
-                            	itemService.save(item);
-                            }
+                            ItemMongo item = exchange.getIn().getBody(ItemMongo.class);							
+							 ItemMongo existingItem =
+							  itemService.findByProviderId(item.getProviderItemId(), Constants.EBAY);
+							 if(existingItem != null) { 
+						      item.setProcess(false);
+						      existingItem.setId(existingItem.getId()); //update item by 
+						      existingItem.setUpdatedOn(new Date()); 
+							  itemService.save(existingItem); }
+							 
                             log.info("{} - {} - {} - {}", item.isProcess(), item.getCondition(), item.getPrice(), item.getTitle());                            
                             if(item.isProcess()) itemService.save(item);
                         })
                         .filter(simple("${mandatoryBodyAs(com.arit.adserve.entity.mongo.ItemMongo).isProcess()}"))
                         .to("direct:getImage");
                
-//------------- Root to update existing items from eBay
+//------------- Route to update existing items from eBay
                 from("direct:remoteEbayApiUpdateItems")
                 .routeId(ROUTE_UPDATE_EBAY_ITEMS)
                 .process(exchange -> {
@@ -233,7 +224,7 @@ public class EbayCamelService {
                 .process(exchange -> readyToProcess.set(true))
                 .log("log:updateItems");
 
-//------------- Root to get an item image from eBay
+//------------- Route to get an item image from eBay
                 from("direct:getImage")
                 .routeId(ROUTE_GET_EBAY_IMAGE)
                 .process(exchange -> {
@@ -248,7 +239,7 @@ public class EbayCamelService {
                             ItemMongo item = exchange.getIn().getBody(ItemMongo.class);
                             exchange.getIn().setBody(item.getGalleryURL());
                             log.info("imageURL: {}", item.getGalleryURL());
-                            exchange.getIn().setHeader("hasGalleryURL", item.getGalleryURL() != null ? true : false);
+                            exchange.getIn().setHeader("hasGalleryURL", item.getGalleryURL() != null);
                             exchange.getIn().setHeader("providerItemId", item.getProviderItemId());
                             exchange.getIn().setHeader("providerName", item.getProviderName());
                         })

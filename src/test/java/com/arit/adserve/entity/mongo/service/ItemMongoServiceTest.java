@@ -6,7 +6,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.util.Pair;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.arit.adserve.comm.Constants;
@@ -39,7 +42,6 @@ class ItemMongoServiceTest {
 	static String localProviderName = "local_provider";
 
 	private static boolean setUpIsDone = false;
-	
 
 	@BeforeEach
 	private void setUp() {
@@ -47,14 +49,15 @@ class ItemMongoServiceTest {
 			return;
 		repo.deleteAll();
 		for (int i = 0; i < 30; i++) {
-			ItemMongo item = new ItemMongo();		
+			ItemMongo item = new ItemMongo();
 			item.setProviderItemId(providerItemId + i);
-			item.setTitle("title" + i);
+			item.setTitle("title " + i);
 			item.setProviderName(Constants.EBAY);
 			item.setViewItemURL("http://viewItemURL.com" + i);
-			item = service.save(item);			
+			item.setDescription("description " + i);
+			item = service.save(item);
 		}
-		
+
 		ItemMongo item2 = new ItemMongo();
 
 		item2.setProviderItemId(localProviderItemId);
@@ -65,7 +68,6 @@ class ItemMongoServiceTest {
 		itemId = item2.getId();
 		setUpIsDone = true;
 	}
-
 
 	@Test
 	void testFindById() {
@@ -84,7 +86,7 @@ class ItemMongoServiceTest {
 
 	@Test
 	void testCount() {
-		assertEquals(31, service.count());
+		assertEquals(31, service.countNotDeleted());
 	}
 
 	@Test
@@ -104,24 +106,25 @@ class ItemMongoServiceTest {
 		List<ItemMongo> result = service.getItemsFromProviderBefore(new Date(), Constants.EBAY, 10);
 		assertEquals(10, result.size());
 	}
-	
+
 	@Test
 	void testFindAllByProviderIds() throws Exception {
-		assertTrue(service.findAllByProviderIds(Arrays.asList(localProviderItemId), localProviderName).iterator().hasNext());		 
+		assertTrue(service.findAllByProviderIds(Arrays.asList(localProviderItemId), localProviderName).iterator()
+				.hasNext());
 	}
-	
+
 	@Test
 	void testFindByProviderId() throws Exception {
-		ItemMongo item = service.findByProviderId(localProviderItemId, Constants.EBAY);
+		ItemMongo item = service.findByProviderId(localProviderItemId, localProviderName);
 		assertNotNull(item);
 	}
-	
+
 	@Test
 	void testFindByProviderIdNotFound() throws Exception {
 		ItemMongo item = service.findByProviderId("non_exisitng_id", Constants.EBAY);
 		assertNull(item);
 	}
-	
+
 	@Test
 	void testFindAllByProvider() throws Exception {
 		PageRequest reqSorted = PageRequest.of(1, 2, Sort.by("title").descending());
@@ -130,7 +133,7 @@ class ItemMongoServiceTest {
 		for (ItemMongo item : items) {
 			log.info(item.getTitle());
 		}
-		 reqSorted = PageRequest.of(2, 2, Sort.by("title").descending());
+		reqSorted = PageRequest.of(2, 2, Sort.by("title").descending());
 		items = service.findAllByProvider(Constants.EBAY, reqSorted);
 		assertEquals(2, items.size());
 		for (ItemMongo item : items) {
@@ -138,5 +141,25 @@ class ItemMongoServiceTest {
 		}
 	}
 
+	@Test
+	void testfindBySearch() {
+		int maxNumberOfDocs = 100;
+		int docsPerPage = 20;
+		int pageNum = 1;
+		Map<String, String> terms = new HashMap<>();
+		terms.put("description", "1"); // one doc
+		Pair<Integer, List<ItemMongo>> pair = service.findBySearch(terms, maxNumberOfDocs, docsPerPage, pageNum);
+		assertEquals(1, pair.getFirst());
+		assertEquals(1, pair.getSecond().size());
+		terms.clear();
+		terms.put("description", "description"); // 30 docs with 'description'
+		pair = service.findBySearch(terms, maxNumberOfDocs, docsPerPage, pageNum);
+		assertEquals(30, pair.getFirst());
+		assertEquals(20, pair.getSecond().size()); // it should return a page size of 20 from 30 total docs
+		pageNum = 2;
+		pair = service.findBySearch(terms, maxNumberOfDocs, docsPerPage, pageNum);
+		assertEquals(30, pair.getFirst());
+		assertEquals(10, pair.getSecond().size()); // the 2nd page should contain 10 remaining items
+	}
 
 }

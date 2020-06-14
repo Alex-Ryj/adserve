@@ -30,8 +30,8 @@ end
 rule "Need to retrieve items page by page"
 agenda-group "ebayRequest"
     when    
-        $request: EBayFindRequest( pageNumber * itemsPerPage  < itemsMaxRequired && pagesTotal >= pageNumber + 1 
-         && state ==  RequestState.RETRIEVE_ITEMS )
+        $request: EBayFindRequest(pagesTotal >= pageNumber + 1 
+         && state ==  RequestState.RETRIEVE_ITEMS && itemsTotal < itemsMaxRequired)
     then
         $request.pageNumber = $request.pageNumber + 1;   
         logger.info("fired: Need to retrieve items page by page: {}", $request); 
@@ -41,9 +41,9 @@ end
 rule "Need to update items"
 agenda-group "ebayRequest"
     when    
-        $request: EBayFindRequest( itemsUpdatedToday < itemsMaxRequired && itemsTotal >= itemsMaxRequired )
+        $request: EBayFindRequest( itemsUpdatedDuringLastPeriod < itemsMaxRequired && itemsTotal >= itemsMaxRequired )
     then
-        System.out.println("fired: Need to update items: " + $request); 
+        logger.info("fired: Need to update items: " + $request); 
         $request.state = RequestState.UPDATE_ITEMS;
         retract($request);
 end
@@ -51,9 +51,9 @@ end
 rule "All items updated today. Nothing to search"
 agenda-group "ebayRequest"
     when    
-        $request: EBayFindRequest( itemsUpdatedToday >= itemsMaxRequired )
+        $request: EBayFindRequest( itemsUpdatedDuringLastPeriod >= itemsMaxRequired )
     then
-        System.out.println("fired: All items updated today. Nothing to search: " + $request); 
+        logger.info("fired: All items updated today. Nothing to search: " + $request); 
         $request.state = RequestState.WAIT;
         $request.pageNumber = 1; 
         retract($request);
@@ -62,12 +62,13 @@ end
 rule "Required number of items is more than we can retreive with this request "
 agenda-group "ebayRequest"
     when    
-        $request: EBayFindRequest( itemsTotalInRequest < itemsMaxRequired && pagesTotal == pageNumber )
+        $request: EBayFindRequest( itemsTotal < itemsMaxRequired && pagesTotal == pageNumber )
     then
-        System.out.println("fired: Required number of items is more than we can retreive with this request: " + $request); 
+        logger.info("fired: Required number of items is more than we can retreive with this request: " + $request); 
         $request.state = RequestState.CHANGE_SEARCH;
         $request.pageNumber = 1;  
-        System.out.println($request);
+        logger.info($request);
+        retract($request);
 end
 
 

@@ -24,7 +24,7 @@ public class EBayFindRequest implements Serializable {
     private long itemsTotalInRequest;
     private String searchWords; 
     private long itemsMaxRequired;
-    private long itemsUpdatedToday;
+    private long itemsUpdatedDuringLastPeriod;
     private long itemsTotal;
     private RequestState state;
     private Date lastItemUpdate;   

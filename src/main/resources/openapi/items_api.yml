@@ -106,6 +106,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ItemsPage"
+                
+  /items/search:
+    get:
+      summary: items search
+      operationId: getItemsSearchByPage
+      x-vertx-event-bus: items_manager.adserve
+      tags:
+        - items
+        - search
+      parameters:       
+        - name: searchWords
+          in: query
+          description: the search word for items
+          required: true
+          schema:
+            type: string  
+        - name: sortedField
+          in: query
+          description: the item field to sort
+          required: true
+          schema:
+            type: string              
+        - name: sortedDesc
+          in: query
+          description: the item field to sort
+          required: true
+          schema:
+            type: boolean 
+        - name: maxItems
+          in: query
+          description: required data page
+          required: true
+          schema:
+            type: integer                                 
+        - name: pageNum
+          in: query
+          description: required data page
+          required: true
+          schema:
+            type: integer
+        - name: itemsPerPage
+          in: query
+          description: required number of items per page
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK - Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemsPage"                
 
 components:
   schemas:

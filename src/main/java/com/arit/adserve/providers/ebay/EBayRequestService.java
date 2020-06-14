@@ -2,10 +2,8 @@ package com.arit.adserve.providers.ebay;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -18,12 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.arit.adserve.comm.Constants;
-import com.arit.adserve.entity.Item;
-import com.arit.adserve.entity.service.ItemServiceImpl;
+import com.arit.adserve.entity.mongo.service.ItemMongoService;
 import com.arit.adserve.providers.ApiUtils;
 import com.arit.adserve.rules.Evaluate;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -84,7 +79,7 @@ public class EBayRequestService {
     private static final EBayFindRequest eBayFindRequest = new EBayFindRequest();
     
     @Autowired
-    private ItemServiceImpl itemService;
+    private ItemMongoService itemService;
     
     @Autowired
     private Evaluate evaluate;
@@ -96,12 +91,8 @@ public class EBayRequestService {
     public String getFindRequestQuery() throws UnsupportedEncodingException {
     	eBayFindRequest.setItemsPerPage(itemsPerPage);
     	eBayFindRequest.setItemsMaxRequired(itemsMaxRequired);
-    	eBayFindRequest.setItemsTotal(itemService.count());
-    	LocalDateTime localDate = LocalDateTime.now().minusHours(updatePeriodHours);
-		Date date = java.util.Date.from(localDate
-			      .atZone(ZoneId.systemDefault())
-			      .toInstant());
-    	eBayFindRequest.setItemsUpdatedToday(itemService.countItemsUpdatedAfter(date, Constants.EBAY)); 
+    	eBayFindRequest.setItemsTotal(itemService.countNotDeleted());    	
+    	eBayFindRequest.setItemsUpdatedDuringLastPeriod(itemService.countItemsUpdatedAfter(getDateLimitForItems(), Constants.EBAY)); 
     	var result = getParamsFindByKeywords(eBayFindRequest);
     	log.info("calling find request: " + result);
         return result;
@@ -181,7 +172,6 @@ public class EBayRequestService {
 		eBayFindRequest.setItemsPerPage(itemsPerPage);
 		eBayFindRequest.setItemsTotalInRequest(itemsTotalInRequest);
 		eBayFindRequest.setPagesTotal(pagesTotal);	
-		eBayFindRequest.setItemsMaxRequired(itemsMaxRequired);
 	}
 		
 	/**

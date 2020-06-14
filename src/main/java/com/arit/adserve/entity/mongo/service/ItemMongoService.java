@@ -1,7 +1,6 @@
 package com.arit.adserve.entity.mongo.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +12,10 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queries.TermsQuery;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.TermQuery;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -28,11 +28,14 @@ import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.entity.mongo.repository.ItemMongoRepository;
 import com.arit.adserve.entity.service.LuceneSearchService;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Alex Ryjoukhine
  * @since May 26, 2020
  */
 @Service
+@Slf4j
 public class ItemMongoService {
 
 	/** ItemMongo fields */
@@ -93,6 +96,7 @@ public class ItemMongoService {
 
 	public ItemMongo save(ItemMongo item) {
 		var savedItem = repo.save(item);
+		log.info("saving mongoItem: {}", savedItem);
 		searchService.indexDocument(savedItem.getLuceneDocument(), analyzer);
 		return savedItem;
 	}
@@ -106,12 +110,15 @@ for (ItemMongo itemMongo : saveditems) {
 	}
 
 	public void deleteById(String id) {
-		repo.deleteById(id);
+		repo.deleteById(id);		
 		searchService.deleteDocument(new Term("id", id), analyzer);
 	}
 
-	public Long count() {
-		return repo.count();
+	public Long countNotDeleted() {
+		Query query = new Query();
+		query.addCriteria(
+				Criteria.where(DELETED).is(false));				
+		return mongoOps.count(query, ItemMongo.class);		
 	}
 	
 	public Long countByProvider(String providerName) {
@@ -146,24 +153,35 @@ for (ItemMongo itemMongo : saveditems) {
 	
 	/**
 	 * @param terms
-	 * @param numOfDocs
+	 * @param maxNumOfDocs
 	 * @param docsPerPage
 	 * @param pageNum
 	 * @return Pair<TotalNumberOfItems, itemsListForPage>
 	 */
-	public Pair<Integer, List<ItemMongo>> findBySearch(Map<String,String> terms, int numOfDocs, int docsPerPage, int pageNum) {
+	public Pair<Integer, List<ItemMongo>> findBySearch(Map<String,String> terms, int maxNumOfDocs, int docsPerPage, int pageNum) {
 		List<Term> searchTerms = new ArrayList<>();
+		BooleanQuery.Builder qBuilder = new BooleanQuery.Builder();
 		for(Entry<String, String> entry : terms.entrySet()) {					
 			Term term = new Term(entry.getKey(), entry.getValue());
+			TermQuery query = new TermQuery(term);
+			qBuilder.add(query, Occur.SHOULD);
 			searchTerms.add(term);
-		}
-		TermsQuery query = new TermsQuery(searchTerms);
-		List<Document> docs = searchService.searchIndex(query, numOfDocs);
-		long totalDocs = docs.size();
-		List<Document> docsByPage = Collections.emptyList();
+		}		
+		List<Document> docs = searchService.searchIndex(qBuilder.build(), maxNumOfDocs);
+		int  totalDocs = docs.size();
+		List<Document> docsByPage;
 		if(totalDocs > 0 && totalDocs>(pageNum-1)*docsPerPage) {
-			docsByPage = docs.subList((pageNum-1)*docsPerPage, pageNum*docsPerPage);
+			docsByPage = docs.subList((pageNum-1)*docsPerPage, totalDocs>pageNum*docsPerPage?pageNum*docsPerPage:totalDocs);
+		}else {
+			docsByPage = docs;
 		}
-		return null;
+		List<String> itemIds = new ArrayList<>();
+		for (Document document : docsByPage) {
+			itemIds.add(document.get("id"));
+		}
+		Iterable<ItemMongo> items = findAllById(itemIds);
+		List<ItemMongo> itemsList = new ArrayList<>();
+		items.forEach(itemsList::add);
+		return Pair.of(totalDocs, itemsList);
 	}
 }

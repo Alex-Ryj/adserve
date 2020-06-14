@@ -9,25 +9,23 @@ import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.CompoundIndexes;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.IntField;
-import org.apache.lucene.document.LongField;
-import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.util.BytesRef;
-import org.apache.poi.xssf.usermodel.TextFontAlign;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
 
 /**
  * Item entity from a provider e.g. eBay
@@ -84,11 +82,11 @@ public class ItemMongo {
 		 Document document = new Document();
 		 document.add(new StoredField("id", this.id));
 		 document.add(new StringField("providerName", this.providerName, Field.Store.NO));
-		 document.add(new StringField("country", this.country, Field.Store.NO));
-         document.add(new TextField("title", this.title, Field.Store.NO));
-         document.add(new TextField("subTitles", this.subTitles.stream().collect(Collectors.joining(" ")), Field.Store.NO));
-         document.add(new TextField("description", this.description, Field.Store.NO));
-         document.add(new IntField("price", this.price, Field.Store.NO));
+		 if(StringUtils.isNotBlank(this.country)) document.add(new StringField("country", this.country, Field.Store.NO));
+		 if(StringUtils.isNotBlank(this.title)) document.add(new TextField("title", this.title, Field.Store.NO));
+		 if(!this.subTitles.isEmpty()) document.add(new TextField("subTitles", this.subTitles.stream().collect(Collectors.joining(" ")), Field.Store.NO));
+		 if(StringUtils.isNotBlank(this.description))document.add(new TextField("description", this.description, Field.Store.NO));
+		 if(price>0) { document.add(new IntPoint("price", this.price)); }
          document.add(new SortedNumericDocValuesField("rank", this.rank));         
          return document;		
 	}

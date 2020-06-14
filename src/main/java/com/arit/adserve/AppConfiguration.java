@@ -5,8 +5,6 @@ import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.vertx.VertxComponent;
 import org.apache.camel.spring.boot.CamelContextConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -17,7 +15,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.arit.adserve.comm.SpringUtil;
 import com.arit.adserve.providers.ebay.EbayCamelService;
 import com.arit.adserve.verticle.ItemOpenApiVerticle;
-import com.arit.adserve.verticle.ItemVerticle;
 import com.arit.adserve.verticle.SchedulerVericle;
 
 import io.vertx.core.DeploymentOptions;
@@ -42,7 +39,6 @@ public class AppConfiguration {
 	public void deployVerticles() {
 		DeploymentOptions optionsWorker = new DeploymentOptions().setWorker(true);		
 		vertx.deployVerticle(SpringUtil.getBean(ItemOpenApiVerticle.class));
-		vertx.deployVerticle(SpringUtil.getBean(ItemVerticle.class), optionsWorker);
 		vertx.deployVerticle(SpringUtil.getBean(SchedulerVericle.class), optionsWorker);
 	}
 
