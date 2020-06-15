@@ -1,6 +1,5 @@
 package com.arit.adserve.rules;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -12,10 +11,7 @@ import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
 import org.kie.api.runtime.rule.FactHandle;
 
-import com.arit.adserve.entity.Item;
 import com.arit.adserve.entity.mongo.ItemMongo;
-import com.arit.adserve.providers.ebay.EBayFindRequest;
-import com.arit.adserve.providers.ebay.RequestState;
 
 import lombok.extern.slf4j.Slf4j;
 

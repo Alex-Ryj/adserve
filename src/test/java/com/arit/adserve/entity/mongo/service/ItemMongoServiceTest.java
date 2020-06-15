@@ -1,7 +1,7 @@
 package com.arit.adserve.entity.mongo.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+import static org.mockito.Mockito.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -10,8 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.store.RAMDirectory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 import com.arit.adserve.comm.Constants;
 import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.entity.mongo.repository.ItemMongoRepository;
+import com.arit.adserve.entity.service.LuceneSearchService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,8 +34,12 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest
 @ActiveProfiles("test")
 class ItemMongoServiceTest {
-
+	
+	
 	@Autowired
+	LuceneSearchService searchService;
+
+	@Autowired	
 	ItemMongoService service;
 
 	@Autowired
@@ -44,7 +53,9 @@ class ItemMongoServiceTest {
 	private static boolean setUpIsDone = false;
 
 	@BeforeEach
-	private void setUp() {
+	private void setUp() {	
+		searchService = spy(searchService);
+		when(searchService.getIndexStore()).thenReturn(new  RAMDirectory());
 		if (setUpIsDone)
 			return;
 		repo.deleteAll();
@@ -62,7 +73,7 @@ class ItemMongoServiceTest {
 
 		item2.setProviderItemId(localProviderItemId);
 		item2.setProviderName(localProviderName);
-		item2.setTitle("title1");
+		item2.setTitle("great stuff");
 		item2.setViewItemURL("http://viewItemURL.com");
 		item2 = service.save(item2);
 		itemId = item2.getId();
@@ -146,18 +157,15 @@ class ItemMongoServiceTest {
 		int maxNumberOfDocs = 100;
 		int docsPerPage = 20;
 		int pageNum = 1;
-		Map<String, String> terms = new HashMap<>();
-		terms.put("description", "1"); // one doc
-		Pair<Integer, List<ItemMongo>> pair = service.findBySearch(terms, maxNumberOfDocs, docsPerPage, pageNum);
-		assertEquals(1, pair.getFirst());
-		assertEquals(1, pair.getSecond().size());
-		terms.clear();
-		terms.put("description", "description"); // 30 docs with 'description'
-		pair = service.findBySearch(terms, maxNumberOfDocs, docsPerPage, pageNum);
+		
+		Pair<Integer, List<ItemMongo>> pair = service.findBySearch("title", maxNumberOfDocs, docsPerPage, pageNum);
+		assertEquals(31, pair.getFirst());
+		assertEquals(1, pair.getSecond().size());		
+		pair = service.findBySearch("title", maxNumberOfDocs, docsPerPage, pageNum);
 		assertEquals(30, pair.getFirst());
 		assertEquals(20, pair.getSecond().size()); // it should return a page size of 20 from 30 total docs
 		pageNum = 2;
-		pair = service.findBySearch(terms, maxNumberOfDocs, docsPerPage, pageNum);
+		pair = service.findBySearch("title", maxNumberOfDocs, docsPerPage, pageNum);
 		assertEquals(30, pair.getFirst());
 		assertEquals(10, pair.getSecond().size()); // the 2nd page should contain 10 remaining items
 	}

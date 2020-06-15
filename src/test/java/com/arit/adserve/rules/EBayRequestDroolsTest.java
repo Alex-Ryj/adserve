@@ -1,8 +1,6 @@
 package com.arit.adserve.rules;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
@@ -10,13 +8,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.StatelessKieSession;
-import org.kie.api.runtime.rule.FactHandle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.arit.adserve.entity.Item;
-import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.providers.ebay.EBayFindRequest;
 import com.arit.adserve.providers.ebay.EBayRequestService;
 import com.arit.adserve.providers.ebay.RequestState;

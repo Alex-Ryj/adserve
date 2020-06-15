@@ -95,11 +95,8 @@ public class ItemVtxServiceImpl implements ItemVtxService {
 		vertx.executeBlocking(future -> {
 			log.info("recieved fro search words {} - page: {}, items per page {}", searchWords, pageNum, itemsPerPage);
 			Sort sort =  Sort.by(sortedField);
-			if(sortedDesc) sort = sort.descending();
-			PageRequest reqSorted = PageRequest.of(pageNum, itemsPerPage, sort);
-			Map<String, String> terms = new HashMap<>();
-			terms.put("title", searchWords); 
-			Pair<Integer,List<ItemMongo>> items = itemService.findBySearch(terms, maxItems, itemsPerPage, pageNum);
+			if(sortedDesc) sort = sort.descending();			 
+			Pair<Integer,List<ItemMongo>> items = itemService.findBySearch(searchWords, maxItems, itemsPerPage, pageNum);
 			int count = items.getFirst();			
 			JsonArray array = new JsonArray();
 			for (ItemMongo item : items.getSecond()) {

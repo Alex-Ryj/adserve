@@ -158,21 +158,16 @@ for (ItemMongo itemMongo : saveditems) {
 	 * @param pageNum
 	 * @return Pair<TotalNumberOfItems, itemsListForPage>
 	 */
-	public Pair<Integer, List<ItemMongo>> findBySearch(Map<String,String> terms, int maxNumOfDocs, int docsPerPage, int pageNum) {
-		List<Term> searchTerms = new ArrayList<>();
-		BooleanQuery.Builder qBuilder = new BooleanQuery.Builder();
-		for(Entry<String, String> entry : terms.entrySet()) {					
-			Term term = new Term(entry.getKey(), entry.getValue());
-			TermQuery query = new TermQuery(term);
-			qBuilder.add(query, Occur.SHOULD);
-			searchTerms.add(term);
-		}		
-		List<Document> docs = searchService.searchIndex(qBuilder.build(), maxNumOfDocs);
-		int  totalDocs = docs.size();
+	public Pair<Integer, List<ItemMongo>> findBySearch(String searchWords, int maxNumOfDocs, int docsPerPage,
+			int pageNum) {
+		List<Document> docs = searchService.searchWildcard(TITLE, "*" + searchWords + "*",
+				org.apache.lucene.search.Sort.RELEVANCE, maxNumOfDocs);		
+		int totalDocs = docs.size();
 		List<Document> docsByPage;
-		if(totalDocs > 0 && totalDocs>(pageNum-1)*docsPerPage) {
-			docsByPage = docs.subList((pageNum-1)*docsPerPage, totalDocs>pageNum*docsPerPage?pageNum*docsPerPage:totalDocs);
-		}else {
+		if (totalDocs > 0 && totalDocs > (pageNum - 1) * docsPerPage) {
+			docsByPage = docs.subList((pageNum - 1) * docsPerPage,
+					totalDocs > pageNum * docsPerPage ? pageNum * docsPerPage : totalDocs);
+		} else {
 			docsByPage = docs;
 		}
 		List<String> itemIds = new ArrayList<>();

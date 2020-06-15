@@ -26,6 +26,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
@@ -52,6 +53,14 @@ public class LuceneSearchService {
 	private void setUp() throws IOException {
 		indexStore = FSDirectory.open(Paths.get(indexDir));
 	}
+	
+	/**
+	 * this is to allow mocking the directory for tests
+	 * @return Directory
+	 */
+	public Directory getIndexStore() {
+		return indexStore;
+	}
 
 	/**
 	 * 
@@ -62,7 +71,7 @@ public class LuceneSearchService {
 
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
 		try {
-			IndexWriter writter = new IndexWriter(indexStore, indexWriterConfig);
+			IndexWriter writter = new IndexWriter(getIndexStore(), indexWriterConfig);
 			writter.addDocument(doc);
 			writter.close();
 		} catch (IOException e) {
@@ -73,7 +82,7 @@ public class LuceneSearchService {
 	public void updateDocument(Document doc, Analyzer analyzer) {
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
 		try {
-			IndexWriter writter = new IndexWriter(indexStore, indexWriterConfig);
+			IndexWriter writter = new IndexWriter(getIndexStore(), indexWriterConfig);
 			Term term = new Term("id", doc.get("id"));
 			writter.updateDocument(term, doc);
 			writter.close();
@@ -82,30 +91,27 @@ public class LuceneSearchService {
 		}
 	}
 
-	public List<Document> searchIndex(String inField, String queryString, Analyzer analyzer) {
+	public List<Document> searchIndex(String inField, String queryString, Analyzer analyzer, int numOfDocs) {
 		try {
 			Query query = new QueryParser(inField, analyzer).parse(queryString);
-
-			IndexReader indexReader = DirectoryReader.open(indexStore);
+			IndexReader indexReader = DirectoryReader.open(getIndexStore());
 			IndexSearcher searcher = new IndexSearcher(indexReader);
-			TopDocs topDocs = searcher.search(query, 10);
+			TopDocs topDocs = searcher.search(query, numOfDocs);
 			List<Document> documents = new ArrayList<>();
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				documents.add(searcher.doc(scoreDoc.doc));
 			}
-
 			return documents;
 		} catch (IOException | ParseException e) {
 			log.error("search index", e);
 		}
 		return Collections.emptyList();
-
 	}
 
 	public void deleteDocument(Term term, Analyzer analyzer) {
 		try {
 			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
-			IndexWriter writter = new IndexWriter(indexStore, indexWriterConfig);
+			IndexWriter writter = new IndexWriter(getIndexStore(), indexWriterConfig);
 			writter.deleteDocuments(term);
 			writter.close();
 		} catch (IOException e) {
@@ -115,7 +121,7 @@ public class LuceneSearchService {
 
 	public List<Document> searchIndex(Query query, int numOfDocs) {
 		try {
-			IndexReader indexReader = DirectoryReader.open(indexStore);
+			IndexReader indexReader = DirectoryReader.open(getIndexStore());
 			IndexSearcher searcher = new IndexSearcher(indexReader);
 			TopDocs topDocs = searcher.search(query, numOfDocs);
 			List<Document> documents = new ArrayList<>();
@@ -130,16 +136,32 @@ public class LuceneSearchService {
 		return Collections.emptyList();
 	}
 
-	public List<Document> searchIndex(Query query, Sort sort) {
+	public List<Document> searchIndex(Query query, Sort sort, int numOfDocs) {
 		try {
-			IndexReader indexReader = DirectoryReader.open(indexStore);
+			IndexReader indexReader = DirectoryReader.open(getIndexStore());
 			IndexSearcher searcher = new IndexSearcher(indexReader);
-			TopDocs topDocs = searcher.search(query, 10, sort);
+			TopDocs topDocs = searcher.search(query, numOfDocs, sort);
 			List<Document> documents = new ArrayList<>();
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				documents.add(searcher.doc(scoreDoc.doc));
 			}
-
+			return documents;
+		} catch (IOException e) {
+			log.error("search index", e);
+		}
+		return Collections.emptyList();
+	}
+	
+	public List<Document> searchWildcard(String field, String queryStr, Sort sort, int numOfDocs) {
+		try {
+			IndexReader indexReader = DirectoryReader.open(getIndexStore());
+			IndexSearcher searcher = new IndexSearcher(indexReader);
+			Query query = new WildcardQuery(new Term(field, queryStr));
+			TopDocs topDocs = searcher.search(query, numOfDocs, sort);
+			List<Document> documents = new ArrayList<>();
+			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+				documents.add(searcher.doc(scoreDoc.doc));
+			}
 			return documents;
 		} catch (IOException e) {
 			log.error("search index", e);
