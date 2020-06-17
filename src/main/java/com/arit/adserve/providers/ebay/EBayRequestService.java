@@ -154,6 +154,7 @@ public class EBayRequestService {
     public RequestState updateRequestState() throws IOException {
     	log.debug("find request before: {}", eBayFindRequest);
     	eBayFindRequest.setItemsMaxRequired(itemsMaxRequired);
+    	eBayFindRequest.setItemsTotal(itemService.countNotDeleted());
     	evaluate.evaluate(eBayFindRequest, RULES_EBAY_REQUEST_AGENDA);
     	log.debug("find request after: {}", eBayFindRequest);
     	return eBayFindRequest.getState();

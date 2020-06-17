@@ -12,6 +12,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
@@ -51,6 +52,7 @@ public class ItemMongoService {
 	private ItemMongoRepository repo;		
 	@Autowired
 	private LuceneSearchService searchService;
+
 	private Analyzer analyzer = new StandardAnalyzer();
 	
 	
@@ -157,16 +159,17 @@ for (ItemMongo itemMongo : saveditems) {
 	 * @param docsPerPage
 	 * @param pageNum
 	 * @return Pair<TotalNumberOfItems, itemsListForPage>
+	 * @throws ParseException 
 	 */
 	public Pair<Integer, List<ItemMongo>> findBySearch(String searchWords, int maxNumOfDocs, int docsPerPage,
-			int pageNum) {
-		List<Document> docs = searchService.searchWildcard(TITLE, "*" + searchWords + "*",
-				org.apache.lucene.search.Sort.RELEVANCE, maxNumOfDocs);		
+			int pageNum) throws ParseException {
+		List<Document> docs = searchService.searchWildcard(TITLE, searchWords,
+				org.apache.lucene.search.Sort.RELEVANCE, maxNumOfDocs, analyzer);		
 		int totalDocs = docs.size();
 		List<Document> docsByPage;
-		if (totalDocs > 0 && totalDocs > (pageNum - 1) * docsPerPage) {
-			docsByPage = docs.subList((pageNum - 1) * docsPerPage,
-					totalDocs > pageNum * docsPerPage ? pageNum * docsPerPage : totalDocs);
+		if (totalDocs > 0 && totalDocs > (pageNum+1) * docsPerPage) {
+			docsByPage = docs.subList(pageNum * docsPerPage,
+					totalDocs > pageNum * docsPerPage ? (pageNum+1) * docsPerPage : totalDocs);
 		} else {
 			docsByPage = docs;
 		}
@@ -179,4 +182,13 @@ for (ItemMongo itemMongo : saveditems) {
 		items.forEach(itemsList::add);
 		return Pair.of(totalDocs, itemsList);
 	}
+	
+	/**
+	 * for testing
+	 * @param searchService
+	 */
+	public void setSearchService(LuceneSearchService searchService) {
+		this.searchService = searchService;
+	}
+
 }

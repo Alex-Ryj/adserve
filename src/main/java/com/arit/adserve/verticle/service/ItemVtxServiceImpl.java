@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -90,13 +91,14 @@ public class ItemVtxServiceImpl implements ItemVtxService {
 	}
 
 	@Override
-	public void getItemsSearchByPage(String searchWords, String sortedField, boolean sortedDesc, int maxItems, int itemsPerPage, int pageNum,
+	public void getItemsSearchByPage(String searchWords, int maxItems,  int pageNum, int itemsPerPage,
 			OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
 		vertx.executeBlocking(future -> {
-			log.info("recieved fro search words {} - page: {}, items per page {}", searchWords, pageNum, itemsPerPage);
-			Sort sort =  Sort.by(sortedField);
-			if(sortedDesc) sort = sort.descending();			 
-			Pair<Integer,List<ItemMongo>> items = itemService.findBySearch(searchWords, maxItems, itemsPerPage, pageNum);
+			log.info("recieved for search words {} - page: {}, items per page {}", searchWords, pageNum, itemsPerPage);
+			Pair<Integer, List<ItemMongo>> items;
+			try {
+				items = itemService.findBySearch(searchWords, maxItems, itemsPerPage, pageNum);
+
 			int count = items.getFirst();			
 			JsonArray array = new JsonArray();
 			for (ItemMongo item : items.getSecond()) {
@@ -108,7 +110,12 @@ public class ItemVtxServiceImpl implements ItemVtxService {
 					.put("items", array);
 			resultHandler.handle(Future.succeededFuture(OperationResponse.completedWithJson(jsonObj)));
 			future.complete();
-		}, ar -> log.info("result handler getItemsByPage"));
+			} catch (ParseException e) {
+				log.error("parsing query problem", e);
+				future.fail(e);
+			}
+		}, ar -> log.info("result handler getItemsSearchByPage"));
+		
 		
 	}
 }

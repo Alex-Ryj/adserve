@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,9 @@ class ItemMongoServiceTest {
 	
 	
 	@Autowired
-	LuceneSearchService searchService;
+	LuceneSearchService searchService;	
+	LuceneSearchService spyService;
+
 
 	@Autowired	
 	ItemMongoService service;
@@ -50,15 +53,23 @@ class ItemMongoServiceTest {
 	static String localProviderItemId = "otherId";
 	static String localProviderName = "local_provider";
 
-	private static boolean setUpIsDone = false;
-
 	@BeforeEach
 	private void setUp() {	
-		searchService = spy(searchService);
-		when(searchService.getIndexStore()).thenReturn(new  RAMDirectory());
-		if (setUpIsDone)
-			return;
+		spyService = spy(searchService);
+		when(spyService.getIndexStore()).thenReturn(new  RAMDirectory());
+		service.setSearchService(spyService);
 		repo.deleteAll();
+		createItems();
+		ItemMongo item2 = new ItemMongo();
+		item2.setProviderItemId(localProviderItemId);
+		item2.setProviderName(localProviderName);
+		item2.setTitle("great stuff");
+		item2.setViewItemURL("http://viewItemURL.com");
+		item2 = service.save(item2);
+		itemId = item2.getId();
+	}
+
+	private void createItems() {
 		for (int i = 0; i < 30; i++) {
 			ItemMongo item = new ItemMongo();
 			item.setProviderItemId(providerItemId + i);
@@ -68,16 +79,6 @@ class ItemMongoServiceTest {
 			item.setDescription("description " + i);
 			item = service.save(item);
 		}
-
-		ItemMongo item2 = new ItemMongo();
-
-		item2.setProviderItemId(localProviderItemId);
-		item2.setProviderName(localProviderName);
-		item2.setTitle("great stuff");
-		item2.setViewItemURL("http://viewItemURL.com");
-		item2 = service.save(item2);
-		itemId = item2.getId();
-		setUpIsDone = true;
 	}
 
 	@Test
@@ -153,15 +154,11 @@ class ItemMongoServiceTest {
 	}
 
 	@Test
-	void testfindBySearch() {
+	void testfindBySearch() throws Exception {
 		int maxNumberOfDocs = 100;
 		int docsPerPage = 20;
-		int pageNum = 1;
-		
-		Pair<Integer, List<ItemMongo>> pair = service.findBySearch("title", maxNumberOfDocs, docsPerPage, pageNum);
-		assertEquals(31, pair.getFirst());
-		assertEquals(1, pair.getSecond().size());		
-		pair = service.findBySearch("title", maxNumberOfDocs, docsPerPage, pageNum);
+		int pageNum = 1;	
+		Pair<Integer, List<ItemMongo>> pair = service.findBySearch("title", maxNumberOfDocs, docsPerPage, pageNum);		
 		assertEquals(30, pair.getFirst());
 		assertEquals(20, pair.getSecond().size()); // it should return a page size of 20 from 30 total docs
 		pageNum = 2;

@@ -18,7 +18,7 @@ public interface ItemVtxService {
 
 	void getItemsByPage(String providerName, String sortedField, boolean sortedDesc, int pageNum, int itemsPerPage, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
-	void getItemsSearchByPage(String searchWords, String sortedField, boolean sortedDesc, int maxItems, int pageNum, int itemsPerPage, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
+	void getItemsSearchByPage(String searchWords, int maxItems, int pageNum, int itemsPerPage, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 	/**
 	 * Factory method to instantiate the implementation
 	 * @param vertx

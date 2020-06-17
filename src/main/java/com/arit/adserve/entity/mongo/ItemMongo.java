@@ -81,11 +81,11 @@ public class ItemMongo {
 	public Document getLuceneDocument() {
 		 Document document = new Document();
 		 document.add(new StoredField("id", this.id));
-		 document.add(new StringField("providerName", this.providerName, Field.Store.NO));
-		 if(StringUtils.isNotBlank(this.country)) document.add(new StringField("country", this.country, Field.Store.NO));
-		 if(StringUtils.isNotBlank(this.title)) document.add(new TextField("title", this.title, Field.Store.NO));
+		 document.add(new StringField("providerName", this.providerName, Field.Store.YES));
+		 if(StringUtils.isNotBlank(this.country)) document.add(new StringField("country", this.country, Field.Store.YES));
+		 if(StringUtils.isNotBlank(this.title)) document.add(new TextField("title", this.title, Field.Store.YES));
 		 if(!this.subTitles.isEmpty()) document.add(new TextField("subTitles", this.subTitles.stream().collect(Collectors.joining(" ")), Field.Store.NO));
-		 if(StringUtils.isNotBlank(this.description))document.add(new TextField("description", this.description, Field.Store.NO));
+		 if(StringUtils.isNotBlank(this.description))document.add(new TextField("description", this.description, Field.Store.YES));
 		 if(price>0) { document.add(new IntPoint("price", this.price)); }
          document.add(new SortedNumericDocValuesField("rank", this.rank));         
          return document;		

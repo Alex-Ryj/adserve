@@ -16,6 +16,7 @@ import org.apache.lucene.document.SortedNumericDocValuesField;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -117,7 +118,7 @@ class LuceneSearchServiceTest {
 	}
 	
 	@Test
-	void testSearchIndexQueryWildCard() {
+	void testSearchIndexQueryParser() throws Exception {
 		Document doc1 = new Document();
 		doc1.add(new StoredField("id", "1"));
 		doc1.add(new TextField("body", "Hello world", Field.Store.YES));
@@ -132,9 +133,9 @@ class LuceneSearchServiceTest {
 		service.indexDocument(doc, analyzer);
 		service.indexDocument(doc1, analyzer);
 		service.indexDocument(doc2, analyzer);		
-		List<Document> documents = service.searchWildcard("body", "*wor*", Sort.RELEVANCE, 10);
+		List<Document> documents = service.searchWildcard("body", "field:stu* body:wor*", Sort.RELEVANCE, 10, analyzer);
 		assertEquals(3, documents.size());
-		documents = service.searchWildcard("field", "*rel*", Sort.RELEVANCE, 10);
+		documents = service.searchWildcard("field", "the* rel*", Sort.RELEVANCE, 10, analyzer);
 		assertEquals(1, documents.size());
 	}
 

@@ -121,19 +121,7 @@ paths:
           description: the search word for items
           required: true
           schema:
-            type: string  
-        - name: sortedField
-          in: query
-          description: the item field to sort
-          required: true
-          schema:
-            type: string              
-        - name: sortedDesc
-          in: query
-          description: the item field to sort
-          required: true
-          schema:
-            type: boolean 
+            type: string
         - name: maxItems
           in: query
           description: required data page

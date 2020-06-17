@@ -69,7 +69,7 @@ public class LuceneSearchService {
 	 */
 	public void indexDocument(Document doc, Analyzer analyzer) {
 
-		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
+   		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
 		try {
 			IndexWriter writter = new IndexWriter(getIndexStore(), indexWriterConfig);
 			writter.addDocument(doc);
@@ -152,12 +152,12 @@ public class LuceneSearchService {
 		return Collections.emptyList();
 	}
 	
-	public List<Document> searchWildcard(String field, String queryStr, Sort sort, int numOfDocs) {
+	public List<Document> searchWildcard(String field, String queryStr, Sort sort, int numOfDocs, Analyzer analyser) throws ParseException {
 		try {
 			IndexReader indexReader = DirectoryReader.open(getIndexStore());
-			IndexSearcher searcher = new IndexSearcher(indexReader);
-			Query query = new WildcardQuery(new Term(field, queryStr));
-			TopDocs topDocs = searcher.search(query, numOfDocs, sort);
+			IndexSearcher searcher = new IndexSearcher(indexReader);			
+			QueryParser qParser = new QueryParser(field, analyser);
+			TopDocs topDocs = searcher.search(qParser.parse(queryStr), numOfDocs, sort);
 			List<Document> documents = new ArrayList<>();
 			for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
 				documents.add(searcher.doc(scoreDoc.doc));
