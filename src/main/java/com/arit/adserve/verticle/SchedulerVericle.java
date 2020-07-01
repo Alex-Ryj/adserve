@@ -29,10 +29,10 @@ public class SchedulerVericle extends AbstractVerticle {
 	public void start() throws Exception {
 		// TODO Auto-generated method stub
 		super.start();
-		vertx.setPeriodic(TimeUnit.SECONDS.toMillis(ebayRequestPeriod), id -> {
-			log.info("calling ebay api");
-			template.sendBody("direct:processItems", "init");
-		});
+//		vertx.setPeriodic(TimeUnit.SECONDS.toMillis(ebayRequestPeriod), id -> {
+//			log.info("calling ebay api");
+//			template.sendBody("direct:processItems", "init");
+//		});
 		
 	}
 

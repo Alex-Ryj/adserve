@@ -210,11 +210,15 @@ public class EbayCamelService {
 									for (ItemMongo item : items) {
 										boolean delete = true;
 										for (JsonNode jsonObj : jsonArrObj) {
-											if (item.getProviderItemId().equals(jsonObj.get("ItemId").toString()))
+											if (item.getProviderItemId().equals(jsonObj.get("ItemID").toString().replaceAll("\"", ""))) {
 												delete = false;
+												break;
+											}
 										}
 										item.setDeleted(delete);
+										item.setUpdatedOn(new Date());
 										itemService.save(item);
+										
 									}
 									return null;
 								}

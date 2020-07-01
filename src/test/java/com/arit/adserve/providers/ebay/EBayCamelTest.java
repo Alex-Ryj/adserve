@@ -1,5 +1,6 @@
 package com.arit.adserve.providers.ebay;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
@@ -12,6 +13,8 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.AdviceWithRouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import com.arit.adserve.comm.Constants;
 import com.arit.adserve.entity.mongo.ItemMongo;
 import com.arit.adserve.entity.mongo.repository.ItemMongoRepository;
+import com.arit.adserve.entity.service.LuceneSearchService;
 
 /**
  * Testing Camel route related to eBay processing. Route nodes responsible for
@@ -39,6 +43,10 @@ public class EBayCamelTest {
 	private ProducerTemplate template;
 	@Autowired
     private ItemMongoRepository itemRepository;
+	@Autowired
+	private LuceneSearchService searchService;
+	
+	private static Analyzer analyzer = new StandardAnalyzer();
 
 	@Test
 	public void vertxRouteTest() throws Exception {
@@ -73,6 +81,8 @@ public class EBayCamelTest {
 
 	@Test
 	public void testEbayApiGetItems() throws Exception {
+		itemRepository.deleteAll();
+		searchService.deleteDocumentsAll(analyzer);
 		AdviceWithRouteBuilder.adviceWith(camelContext, EbayCamelService.ROUTE_PROCESS_EBAY_ITEMS, a -> {
 			a.weaveAddLast().to("mock:out2");
 		});
@@ -88,12 +98,13 @@ public class EBayCamelTest {
 	@Test
 	public void testEbayApiUpdateItems() throws Exception {
 		itemRepository.deleteAll();
+		searchService.deleteDocumentsAll(analyzer); 
 		LocalDate localDate = LocalDate.now().minusDays(2);
 		Date date = java.util.Date.from(localDate.atStartOfDay()
 			      .atZone(ZoneId.systemDefault())
 			      .toInstant());
 		 ItemMongo item = new ItemMongo();
-	        item.setProviderItemId("101");
+	        item.setProviderItemId("264713783843");
 	        item.setTitle("title");
 	        item.setProviderName(Constants.EBAY);
 	        item.setViewItemURL("http://viewItemURL.com");
@@ -117,7 +128,11 @@ public class EBayCamelTest {
 		mockOut.assertIsSatisfied();
 		Iterable<ItemMongo> items = itemRepository.findAll();
 		for (ItemMongo itemUpdated : items) {
-			assertTrue(itemUpdated.isDeleted());			
+			if (itemUpdated.getProviderItemId().equals("264713783843")) {
+				assertFalse(itemUpdated.isDeleted());
+			} else {
+				assertTrue(itemUpdated.isDeleted());
+			}
 		}
 	}
 }

@@ -10,6 +10,8 @@ import com.arit.adserve.entity.mongo.ItemMongo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Converting {@link com.arit.adserve.entity.Item} Item from json responses of
  * various providers
@@ -19,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  */
 @Service
+@Slf4j
 public class ItemJsonConvert {
 	
 	/**
@@ -66,6 +69,7 @@ public class ItemJsonConvert {
 	 */
 	public Iterable<ItemMongo> updateEbayItemsMongo(String jsonStr, Iterable<ItemMongo> items) throws IOException {
 		List<ItemMongo> result = new ArrayList<>();
+		log.debug("updated items json: {}", jsonStr);
 		JsonNode jsonArrObj = new ObjectMapper().readTree(jsonStr).get("Item");
 		for (final JsonNode jsonObj : jsonArrObj) {
 			String itemId = jsonObj.get("ItemID").asText();

@@ -47,7 +47,7 @@ public class LuceneSearchService {
 	@Value("${lucene.index.dir}")
 	private String indexDir;
 
-	private Directory indexStore;
+	private static Directory indexStore;
 
 	@PostConstruct
 	private void setUp() throws IOException {
@@ -58,7 +58,7 @@ public class LuceneSearchService {
 	 * this is to allow mocking the directory for tests
 	 * @return Directory
 	 */
-	public Directory getIndexStore() {
+	public static Directory getIndexStore() {
 		return indexStore;
 	}
 
@@ -67,7 +67,7 @@ public class LuceneSearchService {
 	 * @param title
 	 * @param body
 	 */
-	public void indexDocument(Document doc, Analyzer analyzer) {
+	public static synchronized void indexDocument(Document doc, Analyzer analyzer) {
 
    		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
 		try {
@@ -79,7 +79,7 @@ public class LuceneSearchService {
 		}
 	}
 
-	public void updateDocument(Document doc, Analyzer analyzer) {
+	public static synchronized void updateDocument(Document doc, Analyzer analyzer) {
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
 		try {
 			IndexWriter writter = new IndexWriter(getIndexStore(), indexWriterConfig);
@@ -108,11 +108,22 @@ public class LuceneSearchService {
 		return Collections.emptyList();
 	}
 
-	public void deleteDocument(Term term, Analyzer analyzer) {
+	public static synchronized void deleteDocument(Term term, Analyzer analyzer) {
 		try {
 			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
 			IndexWriter writter = new IndexWriter(getIndexStore(), indexWriterConfig);
 			writter.deleteDocuments(term);
+			writter.close();
+		} catch (IOException e) {
+			log.error("delete document", e);
+		}
+	}
+	
+	public static synchronized void deleteDocumentsAll(Analyzer analyzer) {
+		try {
+			IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
+			IndexWriter writter = new IndexWriter(getIndexStore(), indexWriterConfig);
+			writter.deleteAll();
 			writter.close();
 		} catch (IOException e) {
 			log.error("delete document", e);
