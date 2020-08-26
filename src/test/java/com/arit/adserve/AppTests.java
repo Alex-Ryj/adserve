@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @ActiveProfiles("test")
 class AppTests {
 	
-	@Value("${spring.jpa.properties.hibernate.search.default.indexBase}")
+	@Value("${spring.data.mongodb.uri}")
 	private String mongodbUrl;
 
 	@Test

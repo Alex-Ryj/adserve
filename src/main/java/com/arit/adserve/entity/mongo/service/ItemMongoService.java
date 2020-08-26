@@ -49,50 +49,47 @@ public class ItemMongoService {
 	@Autowired
 	private MongoOperations mongoOps;
 	@Autowired
-	private ItemMongoRepository repo;		
+	private ItemMongoRepository repo;
 	@Autowired
 	private LuceneSearchService searchService;
 
 	private Analyzer analyzer = new StandardAnalyzer();
-	
-	
 
 	public Optional<ItemMongo> findById(String id) {
 		return repo.findById(id);
 	}
-	
+
 	public List<ItemMongo> findAll(int pageNumber, int rowsPerPage) {
 		List<ItemMongo> items = new ArrayList<>();
-		PageRequest sortedByLastUpdateDesc = PageRequest.of(pageNumber - 1, rowsPerPage, Sort.by(UPDATED_ON).descending());
+		PageRequest sortedByLastUpdateDesc = PageRequest.of(pageNumber - 1, rowsPerPage,
+				Sort.by(UPDATED_ON).descending());
 		repo.findAll(sortedByLastUpdateDesc).forEach(items::add);
 		return items;
 	}
-	
+
 	public List<ItemMongo> findAllByProvider(String providerName, PageRequest pageRequest) {
 		List<ItemMongo> items = new ArrayList<>();
-		
+
 //		ItemMongo exampleItem = new ItemMongo();
 //		exampleItem.setProviderName(providerName);
 //		Example<ItemMongo> example = Example.of(exampleItem);
-		repo.findAllByProviderName(providerName, pageRequest).forEach(items::add);	
+		repo.findAllByProviderName(providerName, pageRequest).forEach(items::add);
 		return items;
 	}
-	
+
 	public ItemMongo findByProviderId(String providerItemId, String providerName) {
 		Query query = new Query();
-		query.addCriteria(
-				Criteria.where(PROVIDER_ITEM_ID).is(providerItemId).and(PROVIDER_NAME).is(providerName));				
+		query.addCriteria(Criteria.where(PROVIDER_ITEM_ID).is(providerItemId).and(PROVIDER_NAME).is(providerName));
 		return mongoOps.findOne(query, ItemMongo.class);
 	}
 
 	public Iterable<ItemMongo> findAllById(List<String> itemIds) {
 		return repo.findAllById(itemIds);
 	}
-	
+
 	public Iterable<ItemMongo> findAllByProviderIds(List<String> providerItemIds, String providerName) {
 		Query query = new Query();
-		query.addCriteria(
-				Criteria.where(PROVIDER_NAME).is(providerName).and(PROVIDER_ITEM_ID).in(providerItemIds));				
+		query.addCriteria(Criteria.where(PROVIDER_NAME).is(providerName).and(PROVIDER_ITEM_ID).in(providerItemIds));
 		return mongoOps.find(query, ItemMongo.class);
 	}
 
@@ -103,44 +100,40 @@ public class ItemMongoService {
 		return savedItem;
 	}
 
-
-	public void updateAll(Iterable<ItemMongo> items) {		
+	public void updateAll(Iterable<ItemMongo> items) {
 		var saveditems = repo.saveAll(items);
-for (ItemMongo itemMongo : saveditems) {
-	searchService.indexDocument(itemMongo.getLuceneDocument(), analyzer);
+		for (ItemMongo itemMongo : saveditems) {
+			searchService.indexDocument(itemMongo.getLuceneDocument(), analyzer);
 		}
 	}
 
 	public void deleteById(String id) {
-		repo.deleteById(id);		
+		repo.deleteById(id);
 		searchService.deleteDocument(new Term("id", id), analyzer);
 	}
 
 	public Long countNotDeleted() {
 		Query query = new Query();
-		query.addCriteria(
-				Criteria.where(DELETED).is(false));				
-		return mongoOps.count(query, ItemMongo.class);		
+		query.addCriteria(Criteria.where(DELETED).is(false));
+		return mongoOps.count(query, ItemMongo.class);
 	}
-	
+
 	public Long countByProvider(String providerName) {
 		Query query = new Query();
-		query.addCriteria(
-				Criteria.where(PROVIDER_NAME).is(providerName));				
+		query.addCriteria(Criteria.where(PROVIDER_NAME).is(providerName));
 		return mongoOps.count(query, ItemMongo.class);
 	}
 
 	public Long countItemsUpdatedAfter(Date date, String providerName) {
 		Query query = new Query();
 		query.addCriteria(
-				Criteria.where(UPDATED_ON).gte(date).and(PROVIDER_NAME).is(providerName).and(DELETED).is(false));				
+				Criteria.where(UPDATED_ON).gte(date).and(PROVIDER_NAME).is(providerName).and(DELETED).is(false));
 		return mongoOps.count(query, ItemMongo.class);
 	}
 
 	public boolean hasImage(String providerItemId, String providerName) {
 		Query query = new Query();
-		query.addCriteria(
-				Criteria.where(PROVIDER_ITEM_ID).is(providerItemId).and(PROVIDER_NAME).is(providerName));
+		query.addCriteria(Criteria.where(PROVIDER_ITEM_ID).is(providerItemId).and(PROVIDER_NAME).is(providerName));
 		var item = findByProviderId(providerItemId, providerName);
 		return item != null && StringUtils.isNotEmpty(item.getImage64BaseStr());
 	}
@@ -152,24 +145,24 @@ for (ItemMongo itemMongo : saveditems) {
 				.limit(limit).with(Sort.by(UPDATED_ON).descending());
 		return mongoOps.find(query, ItemMongo.class);
 	}
-	
+
 	/**
 	 * @param terms
 	 * @param maxNumOfDocs
 	 * @param docsPerPage
 	 * @param pageNum
 	 * @return Pair<TotalNumberOfItems, itemsListForPage>
-	 * @throws ParseException 
+	 * @throws ParseException
 	 */
 	public Pair<Integer, List<ItemMongo>> findBySearch(String searchWords, int maxNumOfDocs, int docsPerPage,
 			int pageNum) throws ParseException {
-		List<Document> docs = searchService.searchWildcard(TITLE, searchWords,
-				org.apache.lucene.search.Sort.RELEVANCE, maxNumOfDocs, analyzer);		
+		List<Document> docs = searchService.searchWildcard(TITLE, searchWords, org.apache.lucene.search.Sort.RELEVANCE,
+				maxNumOfDocs, analyzer);
 		int totalDocs = docs.size();
 		List<Document> docsByPage;
-		if (totalDocs > 0 && totalDocs > (pageNum+1) * docsPerPage) {
+		if (totalDocs > 0 && totalDocs > (pageNum + 1) * docsPerPage) {
 			docsByPage = docs.subList(pageNum * docsPerPage,
-					totalDocs > pageNum * docsPerPage ? (pageNum+1) * docsPerPage : totalDocs);
+					totalDocs > pageNum * docsPerPage ? (pageNum + 1) * docsPerPage : totalDocs);
 		} else {
 			docsByPage = docs;
 		}
@@ -182,9 +175,10 @@ for (ItemMongo itemMongo : saveditems) {
 		items.forEach(itemsList::add);
 		return Pair.of(totalDocs, itemsList);
 	}
-	
+
 	/**
 	 * for testing
+	 * 
 	 * @param searchService
 	 */
 	public void setSearchService(LuceneSearchService searchService) {
