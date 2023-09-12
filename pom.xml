@@ -20,7 +20,7 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<drools.version>7.15.0.Final</drools.version>
+		<drools.version>7.69.0.Final</drools.version>
 		<camel.version>2.24.3</camel.version>
 		<lombok.version>1.18.10</lombok.version>
 	</properties>
